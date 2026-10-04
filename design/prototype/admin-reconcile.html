@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hawks Admin — Reconcile</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="admin">
+  <aside class="side" aria-label="Admin navigation">
+    <a class="brand" href="index.html"><span class="brand-badge"><img src="hawks-logo.jpg" alt=""></span><span class="brand-name">HAWKS<small>Committee</small></span></a>
+    <nav>
+      <a href="#"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg> Dashboard</a>
+      <div class="group">Finance</div>
+      <a href="#"><svg class="i" aria-hidden="true"><use href="#i-receipt"/></svg> Charges</a>
+      <a href="#" aria-current="page"><svg class="i" aria-hidden="true"><use href="#i-wallet"/></svg> Claims &amp; reconcile</a>
+      <a href="#"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg> Bank import</a>
+      <a href="#"><svg class="i" aria-hidden="true"><use href="#i-file"/></svg> Reports</a>
+      <div class="group">Club</div>
+      <a href="#"><svg class="i" aria-hidden="true"><use href="#i-users"/></svg> Members</a>
+      <a href="#"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg> Matches</a>
+      <a href="#"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg> Stats imports</a>
+      <a href="#"><svg class="i" aria-hidden="true"><use href="#i-megaphone"/></svg> Announcements</a>
+      <a href="#"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg> Audit log</a>
+      <a href="#"><svg class="i" aria-hidden="true"><use href="#i-settings"/></svg> Settings</a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-top">
+      <div><span class="eyebrow muted">Finance</span><h1>Claims &amp; reconciliation</h1></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="mfa"><svg class="i i-sm" aria-hidden="true"><use href="#i-lock"/></svg> MFA verified</span>
+        <button class="btn btn-ghost btn-sm" onclick="hawksToggleTheme()"><svg class="i i-sm" aria-hidden="true"><use href="#i-moon"/></svg> Theme</button>
+        <button class="btn btn-navy btn-sm"><svg class="i i-sm" aria-hidden="true"><use href="#i-upload"/></svg> Upload bank CSV</button>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="card kpi"><div class="l">Outstanding</div><div class="v">S$2,415</div><div class="d">across 14 members</div></div>
+      <div class="card kpi"><div class="l">Pending claims</div><div class="v" id="kpi-pending">4</div><div class="d">oldest 2 days</div></div>
+      <div class="card kpi"><div class="l">Collected · Oct</div><div class="v">S$1,860</div><div class="d">PayNow 92% · cash 8%</div></div>
+      <div class="card kpi"><div class="l">Overdue &gt; 30 days</div><div class="v" style="color:var(--color-danger)">S$310</div><div class="d">3 members · reminders on</div></div>
+    </div>
+
+    <div class="admin-grid">
+      <section class="card table-card" aria-labelledby="q-h">
+        <div class="head">
+          <h2 id="q-h">Pending claims</h2>
+          <span class="synced"><svg class="i i-sm" aria-hidden="true"><use href="#i-file"/></svg> Bank CSV: DBS · 1–4 Oct · 38 lines</span>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Member</th><th>Reference</th><th>Claimed</th><th class="n">Amount</th><th>Bank match</th><th>Status</th><th class="n">Actions</th></tr></thead>
+            <tbody id="claims">
+              <tr>
+                <td><b>Arjun M.</b></td><td class="num">HWK-PAY-9F3T</td><td>Today 08:12</td><td class="n">145.00</td>
+                <td><span class="match-score"><span class="bar-mini"><span style="width:100%"></span></span> Exact ref</span></td>
+                <td><span class="status status-warn"><svg class="i i-sm" aria-hidden="true"><use href="#i-hourglass"/></svg> Pending</span></td>
+                <td><div class="row-actions"><button class="btn btn-gold btn-sm" data-act="ok">Confirm</button><button class="btn btn-ghost btn-sm" data-act="no">Reject</button></div></td>
+              </tr>
+              <tr>
+                <td><b>Daniel T.</b></td><td class="num">HWK-26-0049</td><td>Yesterday</td><td class="n">25.00</td>
+                <td><span class="match-score"><span class="bar-mini"><span style="width:100%"></span></span> Exact ref</span></td>
+                <td><span class="status status-warn"><svg class="i i-sm" aria-hidden="true"><use href="#i-hourglass"/></svg> Pending</span></td>
+                <td><div class="row-actions"><button class="btn btn-gold btn-sm" data-act="ok">Confirm</button><button class="btn btn-ghost btn-sm" data-act="no">Reject</button></div></td>
+              </tr>
+              <tr>
+                <td><b>Kiran P.</b></td><td class="num">—</td><td>Yesterday</td><td class="n">60.00</td>
+                <td><span class="match-score"><span class="bar-mini"><span style="width:60%;background:var(--color-warning)"></span></span> Amount + name</span></td>
+                <td><span class="status status-warn"><svg class="i i-sm" aria-hidden="true"><use href="#i-hourglass"/></svg> Pending</span></td>
+                <td><div class="row-actions"><button class="btn btn-gold btn-sm" data-act="ok">Confirm</button><button class="btn btn-ghost btn-sm" data-act="no">Reject</button></div></td>
+              </tr>
+              <tr>
+                <td><b>Sam W.</b></td><td class="num">HWK-26-0055</td><td>2 days ago</td><td class="n">300.00</td>
+                <td><span class="match-score" style="color:var(--color-danger)"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert"/></svg> No bank line</span></td>
+                <td><span class="status status-warn"><svg class="i i-sm" aria-hidden="true"><use href="#i-hourglass"/></svg> Pending</span></td>
+                <td><div class="row-actions"><button class="btn btn-gold btn-sm" data-act="ok">Confirm</button><button class="btn btn-ghost btn-sm" data-act="no">Reject</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="au-h">
+        <h2 id="au-h" style="font-size:18px">Audit trail</h2>
+        <ul class="audit" id="audit" style="list-style:none;padding:0;margin:0">
+          <li><svg class="i i-sm" aria-hidden="true" style="color:var(--color-success)"><use href="#i-checkCircle"/></svg><div><b>Treasurer</b> confirmed S$300.00 from Arjun M. (HWK-PAY-7Q2K)<br><time>15 Sep · 21:04</time></div></li>
+          <li><svg class="i i-sm" aria-hidden="true"><use href="#i-receipt"/></svg><div><b>Treasurer</b> raised 16 × BPL entry share (S$60.00)<br><time>01 Oct · 19:30</time></div></li>
+          <li><svg class="i i-sm" aria-hidden="true"><use href="#i-file"/></svg><div><b>Treasurer</b> waived S$25.00 match fee for R. Lim. Reason: "injured, did not play"<br><time>02 Oct · 08:15</time></div></li>
+        </ul>
+        <div class="callout" style="margin-top:16px"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg><span>Ledger entries are append-only. To correct one, record a reversal with a reason.</span></div>
+      </section>
+    </div>
+    <p class="muted" style="font-size:13px;margin-top:24px">Design prototype: all names and amounts are fictional.</p>
+  </main>
+</div>
+<script src="icons.js"></script>
+<script>
+  document.getElementById('claims').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-act]'); if (!b) return;
+    var tr = b.closest('tr'), name = tr.cells[0].textContent, amt = tr.cells[3].textContent, ok = b.dataset.act === 'ok';
+    tr.cells[5].innerHTML = ok
+      ? '<span class="status status-ok"><svg class="i i-sm" aria-hidden="true"><use href="#i-checkCircle"/></svg> Confirmed</span>'
+      : '<span class="status status-bad"><svg class="i i-sm" aria-hidden="true"><use href="#i-x"/></svg> Rejected</span>';
+    tr.cells[6].innerHTML = '<span class="muted" style="font-size:13px">' + (ok ? 'Receipt sent' : 'Member notified') + '</span>';
+    var k = document.getElementById('kpi-pending'); k.textContent = Math.max(0, +k.textContent - 1);
+    document.getElementById('audit').insertAdjacentHTML('afterbegin',
+      '<li><svg class="i i-sm" aria-hidden="true"><use href="#i-' + (ok ? 'checkCircle' : 'x') + '"/></svg><div><b>Treasurer</b> ' + (ok ? 'confirmed' : 'rejected') + ' S$' + amt + ' from ' + name + '<br><time>Just now</time></div></li>');
+    hawksToast((ok ? 'Confirmed ' : 'Rejected ') + 'S$' + amt + ' · ' + name);
+  });
+</script>
+</body>
+</html>

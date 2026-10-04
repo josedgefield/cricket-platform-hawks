@@ -1,0 +1,38 @@
+# --- Personal / financial data: NEVER commit ---
+*.xlsx
+*.xlsm
+*.xls
+*.csv
+!**/fixtures/**/*.csv
+!.claude/skills/**/*.csv
+data/private/
+imports/
+exports/
+bank-statements/
+
+# --- Secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.p8
+*.p12
+*.keystore
+*.jks
+google-services.json
+GoogleService-Info.plist
+
+# --- Build / tooling ---
+node_modules/
+.turbo/
+.next/
+dist/
+build/
+.expo/
+web-build/
+coverage/
+__pycache__/
+*.pyc
+.DS_Store
+supabase/.branches
+supabase/.temp

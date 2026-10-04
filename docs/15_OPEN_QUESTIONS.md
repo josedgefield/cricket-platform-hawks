@@ -1,0 +1,40 @@
+# 15 — Open Questions
+
+Status key: ❓ open · ✅ answered
+
+## Answered (2026-10-04)
+| # | Question | Answer |
+|---|---|---|
+| A1 | Do the docs/ files exist? | No. Claude drafted them from CLAUDE.md |
+| A2 | Legal entity / UEN? | ✅ Informal team, so no Stripe in v1; PayNow QR + manual reconciliation |
+| A3 | Repository | ✅ Use `josedgefield/cricket-platform-hawks` (private) |
+| A4 | Design workflow | ✅ Code-first, plus the UI UX Pro Max skill |
+| A5 | Budget | ✅ Under S$50/month |
+| A6 | Users in first season | ✅ Fewer than 50 |
+| A7 | Brand assets | ✅ Use estimates from the logo (navy + white, Montserrat-like) |
+
+## Open — blocking a gate
+| # | Question | Blocks | Why it matters |
+|---|---|---|---|
+| Q1 ❓ | Please share a **masked sample of the Excel workbook** (real headers, 5–10 rows per sheet) | Phase 1 import | Column mapping, opening balances |
+| Q2 ❓ | **Fee structure:** season fee, match fees, nets, kit, tournament entry? Amounts, due dates, late fees, discounts (students)? | Phase 1 | Fee schedules + reminders |
+| Q3 ❓ | **Who receives money?** Treasurer's personal PayNow, or a dedicated account? Which bank? | Phase 1 | PayNow proxy, bank CSV parser |
+| Q4 ❓ | **SCA data:** does the club have a portal login? Which exports are available (fixtures, scorecards, player stats)? | Phase 3 | Adapter design |
+| Q5 ❓ | **BPL and IAT30:** who runs them, and where do fixtures and stats live? | Phase 3 | Adapter design |
+| Q6 ❓ | **Role holders:** treasurer, captain(s), stats admin, comms admin, club admins (≥ 2 for the two-person rule) | Phase 0 | Seeding roles |
+
+## Open — non-blocking
+| # | Question | Default if unanswered |
+|---|---|---|
+| Q7 ❓ | Any members **under 18**? | Assume no; add guardian consent if yes |
+| Q8 ❓ | Can captains see squad members' outstanding balances? | No (treasurer + admins only) |
+| Q9 ❓ | Refund / waiver / hardship policy? | Treasurer discretion, reason mandatory |
+| Q10 ❓ | How many teams/squads (SCA divisions)? | One squad, many competitions |
+| Q11 ❓ | What stays on WhatsApp? | Banter only; "if it matters, it's in the app" |
+| Q12 ❓ | Official brand hex values, font licence, **SVG logo**? | Estimated tokens |
+| Q13 ❓ | Who is the Data Protection Officer contact? | A committee member to be named before launch |
+| Q14 ❓ | Plan to register as a society (UEN) in the next 12 months? | Stripe stays in Phase 5 |
+| Q15 ❓ | Public website domain (e.g. hawkscc.sg)? Existing site/socials? | Use a subdomain of the hosting provider until decided |
+| Q16 ❓ | Who will own the Apple/Google developer accounts? Ideally a club-controlled email | Club secretary's club email |
+| Q17 ❓ | Sponsors to feature on the website? | Placeholder section |
+| Q18 ❓ | Finance record retention period (7 years proposed)? | 7 years |
