@@ -3,7 +3,9 @@ FROM eclipse-temurin:21-jdk AS build
 WORKDIR /src
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle gradle
-RUN ./gradlew --no-daemon dependencies > /dev/null
+# Tolerate a Windows checkout: strip CRLF line endings and restore the executable bit.
+RUN sed -i 's/\r$//' gradlew && chmod +x gradlew \
+ && ./gradlew --no-daemon dependencies > /dev/null
 COPY src src
 RUN ./gradlew --no-daemon bootJar -x test \
  && java -Djarmode=tools -jar build/libs/hawks-platform-*.jar extract --layers --launcher --destination /extracted
