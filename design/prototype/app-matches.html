@@ -49,16 +49,21 @@
     </section>
 
     <section id="p-st" role="tabpanel" aria-labelledby="t-st" hidden>
-      <div class="block-head" style="margin-top:8px"><h2>Season 2026</h2><span class="synced">SCA + BPL + IAT30</span></div>
-      <div class="stat-tiles">
-        <div class="stat-tile"><b>512</b><small>Runs</small></div>
-        <div class="stat-tile"><b>46.5</b><small>Avg</small></div>
-        <div class="stat-tile"><b>131.6</b><small>SR</small></div>
-        <div class="stat-tile"><b>9</b><small>Wkts</small></div>
-        <div class="stat-tile"><b>5.6</b><small>Econ</small></div>
-        <div class="stat-tile"><b>—</b><small>Catches</small></div>
+      <div class="block-head" style="margin-top:8px"><h2>Season 2025–26</h2><span class="synced"><span class="src src-sca">SCA</span><span class="src src-cricheroes">CricHeroes</span></span></div>
+      <div class="tabs" role="tablist" aria-label="Stats source" id="my-src" style="margin-bottom:10px">
+        <button role="tab" aria-selected="true" aria-controls="my-tiles" data-src="all">All</button><button role="tab" aria-selected="false" aria-controls="my-tiles" data-src="sca">SCA</button><button role="tab" aria-selected="false" aria-controls="my-tiles" data-src="cricheroes">CricHeroes</button>
       </div>
-      <p class="muted" style="font-size:13px;margin:8px 0 0">"—" means the source didn't record the value. We never estimate it.</p>
+      <div class="stat-tiles" id="my-tiles"></div>
+      <p class="muted" style="font-size:13px;margin:8px 0 0">"—" means a source didn't record the value. We never estimate it.</p>
+
+      <div class="block-head" style="margin-top:20px"><h2>By source</h2><a href="stats.html">Club stats</a></div>
+      <div class="card" style="padding:8px 8px 0">
+        <table class="data" id="my-by-src">
+          <thead><tr><th>Source</th><th class="n">Runs</th><th class="n">Avg</th><th class="n">SR</th><th class="n">Wkts</th><th class="n">Econ</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="muted" style="font-size:13px;margin:8px 0 0">Sample data until SCA and CricHeroes figures are imported.</p>
 
       <div class="block-head" style="margin-top:20px"><h2>Runs by match</h2></div>
       <figure class="card" style="margin:0">
@@ -95,7 +100,26 @@
 </div>
 </div>
 <script src="icons.js"></script>
+<script src="stats-data.js"></script>
 <script>
+  // My stats: the signed-in player (prototype: Arjun M.), combined or per source
+  (function () {
+    var S = window.HawksStats, me = 'Arjun M.';
+    function mine(src) { return S.table(S.ROWS, src).filter(function (r) { return r.player === me; })[0] || null; }
+    function tiles(src) {
+      var r = mine(src), v = r ? [[r.bat.runs, 0, 'Runs'], [r.d.batAvg, 1, 'Avg'], [r.d.sr, 1, 'SR'], [r.bowl.wkts, 0, 'Wkts'], [r.d.econ, 1, 'Econ'], [r.field.ct, 0, 'Catches']] : [];
+      document.getElementById('my-tiles').innerHTML = v.length ? v.map(function (t) { return '<div class="stat-tile"><b>' + S.fmt(t[0], t[1]) + '</b><small>' + t[2] + '</small></div>'; }).join('')
+        : '<p class="muted" style="grid-column:1/-1">No stats from this source yet.</p>';
+    }
+    document.getElementById('my-by-src').querySelector('tbody').innerHTML = Object.keys(S.SOURCES).map(function (k) {
+      var r = mine(k), lbl = '<span class="src src-' + k + '">' + S.SOURCES[k].label + '</span> <small class="muted">' + S.SOURCES[k].competition + '</small>';
+      if (!r) return '<tr><td>' + lbl + '</td><td class="n" colspan="5">—</td></tr>';
+      return '<tr><td>' + lbl + '</td><td class="n">' + S.fmt(r.bat.runs) + '</td><td class="n">' + S.fmt(r.d.batAvg, 1) + '</td><td class="n">' + S.fmt(r.d.sr, 1) + '</td><td class="n">' + S.fmt(r.bowl.wkts) + '</td><td class="n">' + S.fmt(r.d.econ, 1) + '</td></tr>';
+    }).join('');
+    var bs = document.querySelectorAll('#my-src button');
+    bs.forEach(function (b) { b.addEventListener('click', function () { bs.forEach(function (x) { x.setAttribute('aria-selected', x === b); }); tiles(b.getAttribute('data-src')); }); });
+    tiles('all');
+  })();
   // bars
   (function () {
     var runs = [12, 45, 8, 71, 33, 0, 58, 71], g = document.getElementById('bars'), w = 26, gap = 10, x0 = 36, base = 145, scale = 125 / 75, html = '';
@@ -123,7 +147,7 @@
   document.querySelectorAll('.seg').forEach(function (g) {
     g.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
-      g.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+      g.querySelectorAll('button').forEach(function (x) { });
       hawksToast('Availability saved: ' + b.textContent.trim());
     });
   });

@@ -28,7 +28,7 @@ Stats (Phase 3) follows as soon as data access is confirmed. Durations assume on
 
 ## Phase 3 — Stats (3–4 weeks, after data access is confirmed)
 - Canonical stats model, source_records, sync_runs, alias mapping queue, overrides.
-- SCA export adapter; BPL/IAT30 adapters as access allows.
+- SCA export adapter; CricHeroes CSV/paste adapter for BPL (see `docs/06`); IAT30 as access allows.
 - Player profiles, leaderboards, charts, "last synced".
 - **Exit:** season totals reconcile with the sources.
 

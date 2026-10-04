@@ -4,11 +4,45 @@
 | Source | What | Known access | Status |
 |---|---|---|---|
 | **SCA Club League** (Singapore Cricket Association) | Fixtures, scorecards, player stats | Public web pages + downloadable CSV/Excel exports; **no documented public API found** (per CLAUDE.md research) | Confirm whether the club has a portal login and whether exports cover scorecards and stats |
-| **BPL** | Tournament fixtures/stats | Unknown | ❓ open question |
-| **IAT30** | Tournament fixtures/stats | Unknown | ❓ open question |
+| **BPL** | Tournament fixtures/stats | Scored on **CricHeroes** (see below) | BPL 2025 = CricHeroes tournament `1500354` |
+| **IAT30** | Tournament fixtures/stats | Unknown; check whether it's on CricHeroes too | ❓ open question |
+| **CricHeroes** (platform) | Hawks team profile, match scorecards, team leaderboard, tournament results and points tables | Public web pages; **automated access is blocked by Cloudflare** (403, Oct 2026); no public API found | Manual CSV/paste import for v1. Ask CricHeroes about partner/data access |
 | **Friendlies / internal** | Results, basic stats | Manual entry | In scope |
 
 > ASSUMPTION: SCA league data may be hosted on a third-party league-management platform. Its terms of service decide what automated access is allowed. **Check before building anything beyond CSV upload.**
+
+## CricHeroes (BPL and other tournaments)
+
+**Known pages** (Hawks CC team `10178708`, BPL 2025 tournament `1500354`):
+
+| Page | URL | Feeds |
+|---|---|---|
+| Team members | https://cricheroes.com/team-profile/10178708/hawks-cc/members | `player_aliases` (CricHeroes name → member) |
+| Team matches | https://cricheroes.com/team-profile/10178708/hawks-cc/matches | `matches`, `innings`, scorecards |
+| Team leaderboard | https://cricheroes.com/team-profile/10178708/hawks-cc/leaderboard | season batting/bowling/fielding totals (cross-check) |
+| BPL 2025 past matches | https://cricheroes.com/tournament/1500354/bpl-2025/matches/past-matches | tournament fixtures/results |
+| BPL 2025 points table | https://cricheroes.com/tournament/1500354/bpl-2025/point-table | `competition_standings` (NRR stored as the source string, never recomputed) |
+
+**Access findings (2026-10-04):** every page above returns **HTTP 403 "Sorry, you have been blocked" from Cloudflare** to server-side requests (curl and a fetch tool). That is the site saying no to automated access, so we **do not** work around it with headless browsers, rotating user agents or similar techniques. That would breach principle 5 and is fragile anyway. No public, documented CricHeroes API was found.
+
+**Access plan, in order of preference:**
+1. **Ask CricHeroes** (or the BPL organiser, who has an organiser account) for an authorised export or API. Record the answer in `docs/15` (Q19).
+2. **v1 default: manual import.** The stats admin opens the leaderboard (or a scorecard) in a normal browser, copies the table or downloads it, and pastes or uploads it in the admin console. This runs through the same stage → preview → commit pipeline as the SCA CSV (`docs/11`).
+3. Controlled web ingestion **only** with written permission from CricHeroes.
+
+**Adapter:** `CricHeroesCsvAdapter`, source id `cricheroes`, `external_ids` keyed on CricHeroes team/tournament/match/player ids where present.
+
+| CricHeroes column (leaderboard) | Canonical field | Notes |
+|---|---|---|
+| Player / Name | `player_aliases.source_name` | Unmatched names go to the mapping queue and are never auto-created |
+| Mat, Inns, NO, Runs, Balls, 4s, 6s | batting counts | `HS` "88*" → 88 (not-out marker dropped for the season HS) |
+| Overs, Maidens, Runs, Wkts | bowling counts | Overs → **balls**; a ball part > 5 is rejected with a warning |
+| Catches, Stumpings, Run outs | fielding counts | |
+| Avg, SR, Econ | *not stored* | Used only to cross-check our own calculation; a mismatch becomes a row warning |
+
+**Combining with SCA:** stats are stored per source and combined at read time. A combined total is `NULL` if **any** contributing source lacks that value, because a partial sum looks complete and would be wrong. Every stats view shows which sources contributed (source chips) and lets the viewer filter to one source.
+
+**Prototype:** `design/prototype/stats.html` (club stats, source filter, BPL points table, paste/CSV import preview) and the "My stats" tab in `app-matches.html`. Both read `design/prototype/stats-data.js`, which holds **sample figures** until real data is imported. Run the logic tests with `node --test design/prototype/stats-data.test.js`.
 
 ## Design: adapter per source
 ```
@@ -18,7 +52,8 @@
              │                           payload, sha256}        │
              │ normalise(raw) → CanonicalMatch/Stats (+warnings) │
              └───────────────────────────────────────────────────┘
-   SCA-CSV adapter   BPL adapter   IAT30 adapter   Manual-entry adapter
+   SCA-CSV adapter  CricHeroes adapter  IAT30 adapter  Manual-entry adapter
+                    (BPL; CSV/paste v1)
          │                │              │                 │
          └─────► source_records (raw, hashed, immutable) ◄─┘
                          │ normalise

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hawks Stats</title>
+<meta name="description" content="Hawks Cricket Club player stats combined from SCA Club League and CricHeroes (BPL 2025). Design prototype.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-nav">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="Hawks Cricket Club home">
+      <span class="brand-badge"><img src="hawks-logo.jpg" alt=""></span>
+      <span class="brand-name">HAWKS<small>Cricket Club · SG</small></span>
+    </a>
+    <nav class="site-links" id="site-links" aria-label="Main">
+      <a href="index.html#fixtures">Fixtures</a>
+      <a href="index.html#results">Results</a>
+      <a href="stats.html" aria-current="page">Stats</a>
+      <a href="index.html#join">Join</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+    <a class="btn btn-gold btn-sm nav-cta" href="app-home.html">Player login</a>
+    <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="site-links" onclick="var n=document.getElementById('site-links');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)">
+      <svg class="i i-lg" aria-hidden="true"><use href="#i-menu"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+<section class="section" aria-labelledby="st-h" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="section-head" style="margin-bottom:var(--space-md)">
+      <div><span class="eyebrow">SCA + CricHeroes · 2025–26</span><h1 id="st-h" style="font-size:clamp(28px,4vw,40px);font-weight:800;text-transform:uppercase;margin:6px 0 0">Player stats</h1></div>
+    </div>
+    <p class="sample-banner" id="sample-banner" role="note"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg>
+      <span><b>Sample figures.</b> CricHeroes blocks automated access, so no live data is loaded yet. Paste a CricHeroes leaderboard below to preview real numbers on this page. Nothing is saved.</span></p>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="src-h" style="padding:var(--space-xl) 0 0">
+  <div class="wrap">
+    <h2 id="src-h" class="sr-only">Data sources</h2>
+    <div class="prov-grid" id="prov"></div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="tbl-h" style="padding-top:var(--space-xl)">
+  <div class="wrap">
+    <div class="stats-toolbar">
+      <h2 id="tbl-h" style="font-size:24px;margin:0">Season tables</h2>
+      <div class="tabs" role="tablist" aria-label="Source">
+        <button role="tab" data-src="all" aria-selected="true">All sources</button>
+        <button role="tab" data-src="sca" aria-selected="false">SCA</button>
+        <button role="tab" data-src="cricheroes" aria-selected="false">CricHeroes · BPL</button>
+      </div>
+    </div>
+    <p class="muted" style="font-size:14px;margin:0">"—" means at least one source didn't record the value. We never estimate it, so a combined total is blank whenever any source is missing that figure. Averages and rates are recalculated from the raw counts.</p>
+
+    <div class="stats-block">
+      <h3>Batting</h3>
+      <div class="card table-card"><div class="table-wrap"><table class="data" id="t-bat">
+        <thead><tr><th scope="col">Player</th><th scope="col">Source</th><th class="n" scope="col">Mat</th><th class="n" scope="col">Inns</th><th class="n" scope="col">NO</th><th class="n" scope="col">Runs</th><th class="n" scope="col">HS</th><th class="n" scope="col">Avg</th><th class="n" scope="col">Balls</th><th class="n" scope="col">SR</th><th class="n" scope="col">4s</th><th class="n" scope="col">6s</th></tr></thead>
+        <tbody></tbody>
+      </table></div></div>
+    </div>
+
+    <div class="stats-block">
+      <h3>Bowling</h3>
+      <div class="card table-card"><div class="table-wrap"><table class="data" id="t-bowl">
+        <thead><tr><th scope="col">Player</th><th scope="col">Source</th><th class="n" scope="col">Overs</th><th class="n" scope="col">Mdns</th><th class="n" scope="col">Runs</th><th class="n" scope="col">Wkts</th><th class="n" scope="col">Avg</th><th class="n" scope="col">Econ</th><th class="n" scope="col">SR</th></tr></thead>
+        <tbody></tbody>
+      </table></div></div>
+    </div>
+
+    <div class="stats-block">
+      <h3>Fielding</h3>
+      <div class="card table-card"><div class="table-wrap"><table class="data" id="t-field" style="min-width:520px">
+        <thead><tr><th scope="col">Player</th><th scope="col">Source</th><th class="n" scope="col">Catches</th><th class="n" scope="col">Stumpings</th><th class="n" scope="col">Run outs</th><th class="n" scope="col">Dismissals</th></tr></thead>
+        <tbody></tbody>
+      </table></div></div>
+    </div>
+
+    <div class="stats-block">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap"><h3>BPL 2025 points table</h3><span class="synced" id="pt-src"></span></div>
+      <div class="card table-card"><div class="table-wrap"><table class="data" id="t-pts" style="min-width:520px">
+        <thead><tr><th scope="col">#</th><th scope="col">Team</th><th class="n" scope="col">M</th><th class="n" scope="col">W</th><th class="n" scope="col">L</th><th class="n" scope="col">NR</th><th class="n" scope="col">Pts</th><th class="n" scope="col">NRR</th></tr></thead>
+        <tbody></tbody>
+      </table></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="imp-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="card">
+      <h2 id="imp-h" style="font-size:22px;margin:0 0 6px">Load CricHeroes stats (preview)</h2>
+      <p class="muted" style="margin:0 0 16px;font-size:15px">Open the <a id="lb-link" href="#" target="_blank" rel="noopener">Hawks CC leaderboard on CricHeroes</a>, pick a tab, copy its table (or a CSV of it) and paste it here. Columns are matched by header name, such as Player, Mat, Inns, NO, Runs, HS, Balls, 4s, 6s, Overs, Maidens, Wkts, Catches, Stumpings and Run outs. The page recalculates rates itself and flags any rate that disagrees with CricHeroes. Names map to members through the alias list, and unknown names are listed for mapping, never added automatically.</p>
+      <div class="import-grid">
+        <div>
+          <label class="field-label" for="imp-kind">Leaderboard tab</label>
+          <select class="input" id="imp-kind"><option value="batting">Batting</option><option value="bowling">Bowling</option><option value="fielding">Fielding</option></select>
+          <label class="field-label" for="imp-text" style="margin-top:12px">CSV or copied table</label>
+          <textarea class="input" id="imp-text" spellcheck="false" placeholder="Player,Mat,Inns,NO,Runs,HS,Balls,SR,4s,6s&#10;Arjun Menon,4,4,0,171,58,127,134.6,16,6"></textarea>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+            <label class="btn btn-ghost btn-sm" style="cursor:pointer"><svg class="i i-sm" aria-hidden="true"><use href="#i-upload"/></svg> Choose CSV file<input type="file" id="imp-file" accept=".csv,.tsv,.txt,text/csv" class="sr-only"></label>
+            <button class="btn btn-navy btn-sm" id="imp-preview">Preview</button>
+          </div>
+        </div>
+        <div aria-live="polite" id="imp-out"><p class="muted" style="font-size:14px">The preview appears here. Nothing changes until you press Apply.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-foot" id="contact">
+  <div class="wrap">
+    <div class="foot-note" style="border-top:0;margin-top:0">© 2026 Hawks Cricket Club · Design prototype: sample names and figures are fictional until real source data is loaded.
+      <button class="btn btn-ghost-light btn-sm" style="margin-left:8px" onclick="hawksToggleTheme()"><svg class="i i-sm" aria-hidden="true"><use href="#i-moon"/></svg> Theme</button>
+    </div>
+  </div>
+</footer>
+
+<script src="icons.js"></script>
+<script src="stats-data.js"></script>
+<script>
+(function () {
+  var S = window.HawksStats, rows = S.ROWS.slice(), filter = 'all', applied = {};
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function srcChips(list) { return '<span class="src-row">' + list.map(function (s) { return '<span class="src src-' + s + '">' + esc(S.SOURCES[s].label) + '</span>'; }).join('') + '</span>'; }
+  function n(v, dp) { return '<td class="n">' + S.fmt(v, dp) + '</td>'; }
+  function byDesc(get) { return function (a, b) { var x = get(a), y = get(b); if (x === null) return 1; if (y === null) return -1; return y - x; }; }
+
+  function renderProv() {
+    var html = Object.keys(S.SOURCES).map(function (k) {
+      var s = S.SOURCES[k], state = applied[k] ? '<span class="status status-info">Preview loaded (not saved)</span>'
+        : s.sample ? '<span class="status status-warn">Sample data</span>' : '<span class="status status-ok">Live</span>';
+      var links = s.links ? '<div class="links">' + [['leaderboard', 'Leaderboard'], ['matches', 'Matches'], ['members', 'Members'], ['tournamentMatches', 'BPL results'], ['pointsTable', 'BPL points table']]
+        .map(function (l) { return '<a href="' + esc(s.links[l[0]]) + '" target="_blank" rel="noopener">' + l[1] + '</a>'; }).join('') + '</div>' : '';
+      return '<article class="card prov"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><span class="src src-' + k + '" style="font-size:13px;padding:4px 10px">' + esc(s.name) + '</span>' + state + '</div>' +
+        '<dl><dt>Covers</dt><dd>' + esc(s.competition) + '</dd><dt>Method</dt><dd>' + esc(s.method) + '</dd>' +
+        (s.teamId ? '<dt>IDs</dt><dd>Team ' + esc(s.teamId) + ' · Tournament ' + esc(s.tournamentId) + '</dd>' : '') +
+        '<dt>Last synced</dt><dd>' + (s.lastSynced ? esc(s.lastSynced) : 'Never') + '</dd></dl>' + links + '</article>';
+    }).join('');
+    document.getElementById('prov').innerHTML = html;
+    document.getElementById('sample-banner').hidden = !Object.keys(S.SOURCES).some(function (k) { return S.SOURCES[k].sample && !applied[k]; });
+  }
+
+  function renderTables() {
+    var t = S.table(rows, filter);
+    document.querySelector('#t-bat tbody').innerHTML = t.slice().sort(byDesc(function (r) { return r.bat.runs; })).map(function (r) {
+      return '<tr><td class="player">' + esc(r.player) + '</td><td>' + srcChips(r.sources) + '</td>' + n(r.bat.mat) + n(r.bat.inns) + n(r.bat.no) + n(r.bat.runs) + n(r.bat.hs) + n(r.d.batAvg, 1) + n(r.bat.balls) + n(r.d.sr, 1) + n(r.bat.fours) + n(r.bat.sixes) + '</tr>';
+    }).join('') || '<tr><td colspan="12" class="muted">No batting data for this source yet.</td></tr>';
+
+    document.querySelector('#t-bowl tbody').innerHTML = t.filter(function (r) { return r.bowl.balls !== 0; }).sort(byDesc(function (r) { return r.bowl.wkts; })).map(function (r) {
+      return '<tr><td class="player">' + esc(r.player) + '</td><td>' + srcChips(r.sources) + '</td><td class="n">' + (S.ballsToOvers(r.bowl.balls) === null ? '—' : S.ballsToOvers(r.bowl.balls)) + '</td>' + n(r.bowl.maidens) + n(r.bowl.runs) + n(r.bowl.wkts) + n(r.d.bowlAvg, 1) + n(r.d.econ, 2) + n(r.d.bowlSr, 1) + '</tr>';
+    }).join('') || '<tr><td colspan="9" class="muted">No bowling data for this source yet.</td></tr>';
+
+    document.querySelector('#t-field tbody').innerHTML = t.slice().sort(byDesc(function (r) { return r.field.ct === null || r.field.st === null ? null : r.field.ct + r.field.st; })).map(function (r) {
+      var dis = r.field.ct === null || r.field.st === null ? null : r.field.ct + r.field.st;
+      return '<tr><td class="player">' + esc(r.player) + '</td><td>' + srcChips(r.sources) + '</td>' + n(r.field.ct) + n(r.field.st) + n(r.field.ro) + n(dis) + '</tr>';
+    }).join('') || '<tr><td colspan="6" class="muted">No fielding data for this source yet.</td></tr>';
+  }
+
+  function renderPoints() {
+    var p = S.POINTS_TABLE;
+    document.getElementById('pt-src').innerHTML = '<span class="src src-' + p.source + '">' + esc(S.SOURCES[p.source].label) + '</span>' + (p.sample ? ' Sample data · ' : ' ') +
+      '<a href="' + esc(S.SOURCES[p.source].links.pointsTable) + '" target="_blank" rel="noopener">View on CricHeroes</a>';
+    document.querySelector('#t-pts tbody').innerHTML = p.rows.map(function (r, i) {
+      return '<tr' + (r.team === 'Hawks CC' ? ' class="hawks"' : '') + '><td>' + (i + 1) + '</td><td>' + esc(r.team) + '</td>' + n(r.mat) + n(r.won) + n(r.lost) + n(r.nr) + n(r.pts) + '<td class="n">' + (r.nrr === null ? '—' : esc(r.nrr)) + '</td></tr>';
+    }).join('');
+  }
+
+  // Source filter tabs
+  var tabs = document.querySelectorAll('.stats-toolbar .tabs button');
+  tabs.forEach(function (b) {
+    b.addEventListener('click', function () {
+      filter = b.getAttribute('data-src');
+      tabs.forEach(function (x) { x.setAttribute('aria-selected', x === b); });
+      renderTables();
+    });
+  });
+
+  // Import preview
+  var out = document.getElementById('imp-out'), pending = null;
+  document.getElementById('lb-link').href = S.SOURCES.cricheroes.links.leaderboard;
+  document.getElementById('imp-file').addEventListener('change', function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    if (f.size > 1024 * 1024) { out.innerHTML = '<p class="status status-bad">That file is over 1 MB, which is too large for a leaderboard.</p>'; return; }
+    var rd = new FileReader();
+    rd.onload = function () { document.getElementById('imp-text').value = rd.result; preview(); };
+    rd.onerror = function () { out.innerHTML = '<p class="status status-bad">Couldn\'t read that file. Try pasting the contents instead.</p>'; };
+    rd.readAsText(f);
+  });
+  document.getElementById('imp-preview').addEventListener('click', preview);
+
+  function preview() {
+    var kind = document.getElementById('imp-kind').value, text = document.getElementById('imp-text').value;
+    if (!text.trim()) { out.innerHTML = '<p class="status status-warn">Paste a table or choose a CSV file first.</p>'; return; }
+    var res = S.importLeaderboard(text, kind);
+    if (res.errors.length && !res.rows.length) { out.innerHTML = '<p class="status status-bad">' + esc(res.errors[0]) + '</p>'; pending = null; return; }
+    pending = res;
+    var ok = res.rows.filter(function (r) { return r.player && !r.duplicate; }).length;
+    var unmatched = res.rows.filter(function (r) { return !r.player; });
+    var html = '<p style="margin:0 0 8px"><b>' + ok + '</b> of ' + res.rows.length + ' rows will apply.' + (unmatched.length ? ' <span class="status status-warn">' + unmatched.length + ' need mapping</span>' : '') + '</p>';
+    html += '<div class="table-wrap"><table class="data"><thead><tr><th>CricHeroes name</th><th>Member</th><th>Notes</th></tr></thead><tbody>' + res.rows.map(function (r) {
+      var notes = r.warnings.length ? '<ul class="warn-list">' + r.warnings.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul>' : '<span class="muted">OK</span>';
+      return '<tr><td>' + esc(r.sourceName) + '</td><td>' + (r.player ? esc(r.player) : '<span class="status status-warn">Unmatched</span>') + '</td><td>' + notes + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+    html += res.errors.map(function (e) { return '<p class="status status-bad" style="margin-top:8px">' + esc(e) + '</p>'; }).join('');
+    html += '<button class="btn btn-gold btn-sm" id="imp-apply" style="margin-top:12px"' + (ok ? '' : ' disabled') + '>Apply ' + ok + ' rows to this page</button>';
+    out.innerHTML = html;
+    var btn = document.getElementById('imp-apply');
+    if (btn) btn.addEventListener('click', function () {
+      rows = S.applyImport(rows, pending.rows, 'cricheroes');
+      applied.cricheroes = true;
+      renderProv(); renderTables();
+      hawksToast('CricHeroes ' + kind + ' applied to this page (not saved)');
+    });
+  }
+
+  renderProv(); renderTables(); renderPoints();
+})();
+</script>
+</body>
+</html>
