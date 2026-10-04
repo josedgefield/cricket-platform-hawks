@@ -2,6 +2,8 @@
 type: feature-list
 project: Hawks CC platform
 updated: 2026-10-05
+last_report: 2026-10-05
+last_report_head: e8e1d7a
 tags:
   - hawks-cc
   - features
@@ -11,7 +13,8 @@ tags:
 
 Build top to bottom; each phase ends with a demo to the committee (`docs/13_ROADMAP_MVP.md`).
 Requirement IDs refer to `docs/02_REQUIREMENTS.md`, Q numbers to `docs/15_OPEN_QUESTIONS.md`.
-Status values: Done · Partly done · Not started · Blocked · Dropped. Updated by the `end-session` skill.
+Status values: Done · Partly done · Not started · Blocked · Dropped. Updated by the `end-session` skill;
+progress reports themselves live in the Obsidian vault, not in this repo.
 
 ## Already done
 

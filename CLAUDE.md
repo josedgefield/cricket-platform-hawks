@@ -124,8 +124,10 @@ The import process must be explicit, previewable, validated, reversible where pr
 ## End of session
 
 When the user writes **End session** (any capitalisation), run the `end-session` skill
-(`.claude/skills/end-session/SKILL.md`). It writes an honest progress report to
-`docs/progress/<date>.md` (Obsidian-ready Markdown), updates `docs/FEATURES.md`, and commits both.
+(`.claude/skills/end-session/SKILL.md`). It writes an honest progress report as Obsidian-ready
+Markdown to the user's vault (`HAWKS_OBSIDIAN_DIR`, default
+`C:\Users\shrey\Documents\Obsidian\Hawks Cricket App\Progress Reports`), or hands it over as a
+file in cloud sessions. Reports are never committed to this repo; only `docs/FEATURES.md` is updated.
 
 ## Stack decision (2026-10-04)
 
