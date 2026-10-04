@@ -1,0 +1,69 @@
+name: mobile
+
+on:
+  push:
+    paths:
+      - 'apps/mobile/**'
+      - '.github/workflows/mobile.yml'
+  pull_request:
+    paths:
+      - 'apps/mobile/**'
+      - '.github/workflows/mobile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Check and build (web)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # No lockfile is committed yet; the first local `npm install` creates one to commit.
+      - name: Install
+        run: npm install --no-audit --no-fund
+
+      - name: Dependencies match the Expo SDK
+        run: npx expo install --check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build web
+        run: npm run build:web
+
+      - name: Smoke test the web build in a browser
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1 serve@14
+          npx playwright install --with-deps chromium
+          npx serve -s dist -l 4173 &
+          for i in $(seq 1 30); do curl -sf http://localhost:4173 > /dev/null && break; sleep 1; done
+          node scripts/smoke-web.mjs http://localhost:4173
+
+      - name: Upload screenshot and web build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-web
+          path: |
+            apps/mobile/smoke-web.png
+            apps/mobile/dist/
+          retention-days: 7
+          if-no-files-found: ignore

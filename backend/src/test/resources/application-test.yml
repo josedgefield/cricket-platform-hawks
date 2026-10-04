@@ -2,3 +2,5 @@ hawks:
   dev:
     admin-username: test-admin
     admin-password: test-admin-password
+  cors:
+    allowed-origins: http://localhost:8081

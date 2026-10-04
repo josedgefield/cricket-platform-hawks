@@ -45,17 +45,19 @@ class SecurityConfig {
     }
 
     /**
-     * Lets web pages on other origins (e.g. the prototype on localhost:8000) read public stats.
-     * No origins are allowed unless hawks.cors.allowed-origins lists them.
+     * Browsers only let the web app call the API from origins listed in
+     * {@code hawks.cors.allowed-origins} (e.g. the Expo dev server). Native apps are unaffected.
      */
     @Bean
     CorsConfigurationSource corsConfigurationSource(
             @Value("${hawks.cors.allowed-origins:}") List<String> allowedOrigins) {
-        CorsConfiguration stats = new CorsConfiguration();
-        stats.setAllowedOrigins(allowedOrigins.stream().filter(o -> !o.isBlank()).toList());
-        stats.setAllowedMethods(List.of("GET"));
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(allowedOrigins.stream().filter(o -> !o.isBlank()).toList());
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/stats/**", stats);
+        source.registerCorsConfiguration("/api/**", config);
         return source;
     }
 

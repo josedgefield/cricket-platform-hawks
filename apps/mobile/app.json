@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Hawks CC",
+    "slug": "hawks-cc",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "hawkscc",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "sg.hawkscc.app"
+    },
+    "android": {
+      "package": "sg.hawkscc.app",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "bundler": "metro"
+    },
+    "plugins": ["expo-router"]
+  }
+}

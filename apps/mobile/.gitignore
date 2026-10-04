@@ -1,0 +1,16 @@
+node_modules/
+.expo/
+dist/
+web-build/
+*.tsbuildinfo
+.env*.local
+# generated native folders (EAS builds them)
+/ios
+/android
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.metro-health-check*
+npm-debug.*

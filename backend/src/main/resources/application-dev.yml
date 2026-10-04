@@ -19,8 +19,8 @@ logging:
 
 hawks:
   cors:
-    # The static prototype (design/prototype, served with python -m http.server 8000).
-    allowed-origins: http://localhost:8000,http://127.0.0.1:8000
+    # Expo web dev server (npx expo start --web)
+    allowed-origins: http://localhost:8081,http://127.0.0.1:8081
   dev:
     # Local-only login for trying the admin endpoints in Swagger UI.
     # The identity module (email one-time codes) replaces this.
