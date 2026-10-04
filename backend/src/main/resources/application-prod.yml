@@ -1,0 +1,11 @@
+# Server profile. All secrets come from environment variables (see deploy/.env.example).
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+
+logging:
+  structured:
+    format:
+      console: ecs

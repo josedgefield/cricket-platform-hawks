@@ -36,3 +36,6 @@ __pycache__/
 .DS_Store
 supabase/.branches
 supabase/.temp
+
+# Public cricket stats bundled as seed data (not personal/financial records)
+!backend/src/main/resources/seed/**/*.csv

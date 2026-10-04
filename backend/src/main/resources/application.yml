@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: hawks-platform
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/hawks}
+    username: ${DATABASE_USERNAME:hawks}
+    password: ${DATABASE_PASSWORD:}
+  flyway:
+    locations: classpath:db/migration
+  threads:
+    virtual:
+      enabled: true
+  docker:
+    compose:
+      # Only the dev profile starts compose.yaml automatically.
+      enabled: false
+
+server:
+  # Behind Caddy on the server; never exposed directly.
+  forward-headers-strategy: framework
+  error:
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+hawks:
+  # The single club this deployment serves (tenant-aware data, one club for now).
+  club-slug: hawks-cc
+  stats:
+    # Load the bundled CricHeroes BPL 2025 data on startup. Idempotent: an
+    # unchanged file is recorded as "unchanged" and changes nothing.
+    seed: ${HAWKS_STATS_SEED:true}

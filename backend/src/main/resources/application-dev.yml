@@ -1,0 +1,25 @@
+# Local development: ./gradlew bootRun, or run HawksApplication from your IDE with
+# the "dev" profile. Postgres and Mailpit start from compose.yaml automatically.
+spring:
+  docker:
+    compose:
+      enabled: true
+      file: compose.yaml
+      lifecycle-management: start-only
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    sg.hawkscc: DEBUG
+
+hawks:
+  dev:
+    # Local-only login for trying the admin endpoints in Swagger UI.
+    # The identity module (email one-time codes) replaces this.
+    admin-username: dev-admin
+    admin-password: dev-admin-password
