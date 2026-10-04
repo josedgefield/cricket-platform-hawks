@@ -31,27 +31,7 @@
 
     <section class="block" aria-labelledby="nm-h">
       <div class="block-head"><h2 id="nm-h">Next match</h2><a href="app-matches.html">All</a></div>
-      <article class="card next-match">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-          <span class="chip chip-navy">SCA Div 2 · R9</span>
-          <span class="status status-info"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg> In 6 days</span>
-        </div>
-        <div class="teams">
-          <div class="t"><span class="mini-crest"><img src="hawks-logo.jpg" alt=""></span>Hawks</div>
-          <span class="vs" style="font-size:16px">VS</span>
-          <div class="t">Mariners<span class="mini-crest away" aria-hidden="true">MM</span></div>
-        </div>
-        <div class="meta-row">
-          <span><svg class="i i-sm" aria-hidden="true"><use href="#i-calendar"/></svg> Sat 11 Oct · 09:30</span>
-          <span><svg class="i i-sm" aria-hidden="true"><use href="#i-map"/></svg> Kallang Cricket Ground</span>
-        </div>
-        <div class="seg" role="group" aria-label="Your availability">
-          <button data-v="yes" aria-pressed="true"><svg class="i i-sm" aria-hidden="true"><use href="#i-check"/></svg> Available</button>
-          <button data-v="maybe" aria-pressed="false"><svg class="i i-sm" aria-hidden="true"><use href="#i-help"/></svg> Maybe</button>
-          <button data-v="no" aria-pressed="false"><svg class="i i-sm" aria-hidden="true"><use href="#i-x"/></svg> Out</button>
-        </div>
-        <p class="muted" style="font-size:13px;margin:10px 0 0">11 of 16 squad responded · selection posted Thu</p>
-      </article>
+      <div id="next"><div class="skeleton" style="height:180px"></div></div>
     </section>
 
     <section class="block" aria-labelledby="an-h">
@@ -74,12 +54,8 @@
     </section>
 
     <section class="block" aria-labelledby="lr-h">
-      <div class="block-head"><h2 id="lr-h">Last result</h2></div>
-      <article class="card">
-        <div class="score-row won"><span class="team">Hawks CC</span><span class="score num">184/6<small>(40)</small></span></div>
-        <div class="score-row"><span class="team">Kallang Kings</span><span class="score num">162<small>(37.2)</small></span></div>
-        <p class="muted" style="font-size:14px;margin:8px 0 0">Won by 22 runs · You: 71 (58), 1/24</p>
-      </article>
+      <div class="block-head"><h2 id="lr-h">Last result</h2><a href="app-stats.html">All</a></div>
+      <div id="last"><div class="skeleton" style="height:96px"></div></div>
     </section>
   </div>
 
@@ -93,14 +69,43 @@
 </div>
 </div>
 <script src="icons.js"></script>
+<script src="data/sca-snapshot.js"></script>
+<script src="sca-api.js"></script>
 <script>
-  document.querySelectorAll('.seg').forEach(function (g) {
-    g.addEventListener('click', function (e) {
-      var b = e.target.closest('button'); if (!b) return;
-      g.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
-      hawksToast('Availability saved: ' + b.textContent.trim());
-    });
+(function () {
+  var A = HawksApi, esc = A.esc, T = A.teamName, $ = function (id) { return document.getElementById(id); };
+  Promise.all([A.get('/api/sca/schedule/next'), A.get('/api/sca/results?limit=1')]).then(function (r) {
+    var f = r[0].data;
+    if (!f) { $('next').innerHTML = '<div class="card"><p class="muted" style="margin:0">No upcoming matches in the SCA schedule.</p></div>'; }
+    else {
+      var opp = A.opponent(f), ko = A.kickoff(f), days = ko ? Math.ceil((ko - Date.now()) / 864e5) : null;
+      $('next').innerHTML = '<article class="card next-match">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span class="chip chip-navy">' + esc((f.competition || 'SCA').replace(/ - \d{4}$/, '').replace('SCA Clubs ', 'SCA ')) + '</span>' +
+        (days != null && days >= 0 ? '<span class="status status-info"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg> ' + (days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : 'In ' + days + ' days') + '</span>' : '') + '</div>' +
+        '<div class="teams"><div class="t"><span class="mini-crest"><img src="hawks-logo.jpg" alt=""></span>Hawks</div><span class="vs" style="font-size:16px">' + (A.isUs(f.teamOne) ? 'VS' : '@') + '</span>' +
+        '<div class="t" style="text-align:right">' + esc(T(opp)) + '<span class="mini-crest away" aria-hidden="true">' + esc(A.crestText(opp)) + '</span></div></div>' +
+        '<div class="meta-row"><span><svg class="i i-sm" aria-hidden="true"><use href="#i-calendar"/></svg> ' + A.niceDate(f.date, f.dateText) + (f.time ? ' · ' + esc(f.time) : '') + '</span>' +
+        (f.venue ? '<span><svg class="i i-sm" aria-hidden="true"><use href="#i-map"/></svg> ' + esc(f.venue) + '</span>' : '') + '</div>' +
+        '<div class="seg" role="group" aria-label="Your availability"><button data-v="yes" aria-pressed="false"><svg class="i i-sm" aria-hidden="true"><use href="#i-check"/></svg> Available</button>' +
+        '<button data-v="maybe" aria-pressed="false"><svg class="i i-sm" aria-hidden="true"><use href="#i-help"/></svg> Maybe</button>' +
+        '<button data-v="no" aria-pressed="false"><svg class="i i-sm" aria-hidden="true"><use href="#i-x"/></svg> Out</button></div></article>';
+    }
+    var m = (r[1].data || [])[0];
+    $('last').innerHTML = !m ? '<div class="card"><p class="muted" style="margin:0">No results yet.</p></div>' :
+      '<article class="card"><div class="result-top" style="margin-bottom:6px"><span class="muted" style="font-size:13px;font-weight:600">' + A.niceDate(m.date, m.dateText) + '</span>' + A.outcomeChip(m.outcome) + '</div>' +
+      '<div class="score-row"><span class="team">' + esc(T(m.teamOne)) + '</span><span class="score num">' + A.val(m.teamOneScore) + '</span></div>' +
+      '<div class="score-row"><span class="team">' + esc(T(m.teamTwo)) + '</span><span class="score num">' + A.val(m.teamTwoScore) + '</span></div>' +
+      '<p class="muted" style="font-size:14px;margin:8px 0 0">' + esc(m.result || '') + '</p></article>';
+  }).catch(function () {
+    $('next').innerHTML = '<div class="card"><p class="muted" style="margin:0">Match info unavailable right now.</p></div>';
+    $('last').innerHTML = '';
   });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.seg button'); if (!b) return;
+    b.parentElement.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+    hawksToast('Availability saved: ' + b.textContent.trim());
+  });
+})();
 </script>
 </body>
 </html>

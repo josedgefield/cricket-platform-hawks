@@ -10,6 +10,7 @@ import static sg.hawkscc.api.sca.normalize.CricketValues.text;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
@@ -31,6 +32,8 @@ import sg.hawkscc.api.sca.model.ScaRecords.Player;
 public class ScaNormalizer {
 
     private static final String[] PLAYER = {"player", "player name", "name", "batsman", "batter", "bowler", "fielder"};
+    private static final Pattern SCORE_IN_SUMMARY =
+            Pattern.compile("([^:]+?):\\s*(\\d+/\\d+)\\s*\\(\\s*(\\d+(?:\\.\\d+)?)\\s*\\)");
     private static final Pattern VERSUS = Pattern.compile("\\s+(?:v|vs|versus)\\.?\\s+", Pattern.CASE_INSENSITIVE);
 
     private final ScaProperties props;
@@ -42,6 +45,7 @@ public class ScaNormalizer {
     public List<Player> players(RawTable t) {
         List<Player> out = new ArrayList<>();
         Columns c = new Columns(t.headers());
+        int id = c.claim("cc player id", "player id", "playerid", "id");
         int name = c.claimContaining(PLAYER);
         int role = c.claimContaining("playing role", "player role", "role");
         int bat = c.claimContaining("batting style", "bat style", "batting");
@@ -52,7 +56,8 @@ public class ScaNormalizer {
             if (n == null) {
                 continue;
             }
-            out.add(new Player(t.idsFor(i).get("playerid"), n, text(cell(r, role)), text(cell(r, bat)),
+            String playerId = t.idsFor(i).getOrDefault("playerid", text(cell(r, id)));
+            out.add(new Player(playerId, n, text(cell(r, role)), text(cell(r, bat)),
                     text(cell(r, bowl)), c.extra(r)));
         }
         return out;
@@ -161,7 +166,7 @@ public class ScaNormalizer {
         List<MatchResult> out = new ArrayList<>();
         Columns c = new Columns(t.headers());
         int date = c.claimContaining("date", "match date");
-        int comp = c.claimContaining("series", "league", "competition", "tournament", "division");
+        int comp = c.claimContaining("division", "series", "league", "competition", "tournament", "match type");
         int score1 = c.claim("team one score", "team 1 score", "team1 score", "score 1", "home score", "score");
         int score2 = c.claim("team two score", "team 2 score", "team2 score", "score 2", "away score", "score");
         int team1 = c.claim("team one", "team 1", "team1", "home team", "home", "team a", "team", "batting first");
@@ -170,16 +175,21 @@ public class ScaNormalizer {
         int match = (team1 < 0 && team2 < 0) ? c.claimContaining("match", "teams", "fixture") : -1;
         int result = c.claimContaining("result", "match result", "won by", "winner", "status");
         int venue = c.claimContaining("ground", "venue", "location");
+        int summary = c.claimContaining("score summary", "scores", "summary");
         for (int i = 0; i < t.rows().size(); i++) {
             List<String> r = t.rows().get(i);
             String[] teams = teams(r, team1, team2, match);
+            String[] scores = {text(cell(r, score1)), text(cell(r, score2))};
+            if (scores[0] == null && scores[1] == null) {
+                scores = scoresFromSummary(text(cell(r, summary)), teams);
+            }
             String dateText = text(cell(r, date));
             String resultText = text(cell(r, result));
             if (dateText == null && teams[0] == null && resultText == null) {
                 continue;
             }
             out.add(new MatchResult(t.idsFor(i).get("matchid"), date(dateText, props.dateOrder()), dateText,
-                    text(cell(r, comp)), teams[0], text(cell(r, score1)), teams[1], text(cell(r, score2)), resultText,
+                    text(cell(r, comp)), teams[0], scores[0], teams[1], scores[1], resultText,
                     outcome(resultText), text(cell(r, venue)), c.extra(r)));
         }
         return out;
@@ -190,7 +200,7 @@ public class ScaNormalizer {
         Columns c = new Columns(t.headers());
         int date = c.claimContaining("date", "match date");
         int time = c.claimContaining("time", "start time", "start");
-        int comp = c.claimContaining("series", "league", "competition", "tournament", "division");
+        int comp = c.claimContaining("division", "series", "league", "competition", "tournament", "match type");
         int team1 = c.claim("team one", "team 1", "team1", "home team", "home", "team a", "team");
         int team2 = c.claim("team two", "team 2", "team2", "away team", "away", "team b", "team", "opponent");
         int match = (team1 < 0 && team2 < 0) ? c.claimContaining("match", "teams", "fixture") : -1;
@@ -218,6 +228,31 @@ public class ScaNormalizer {
             return new String[] {null, null};
         }
         return new String[] {text(cell(r, team1)), text(cell(r, team2))};
+    }
+
+    /**
+     * Splits a combined summary such as {@code "HAWKS CC: 282/4(28.0)WARRIORS CC 2: 152/10(22.2)"} into per-team
+     * scores, matched to team one / team two by name. Scores are kept as the source wrote them (spacing aside).
+     */
+    static String[] scoresFromSummary(String summary, String[] teams) {
+        String[] out = {null, null};
+        if (summary == null) {
+            return out;
+        }
+        Matcher m = SCORE_IN_SUMMARY.matcher(summary);
+        List<String[]> found = new ArrayList<>();
+        while (m.find()) {
+            found.add(new String[] {m.group(1).trim(), m.group(2) + " (" + m.group(3) + ")"});
+        }
+        for (String[] f : found) {
+            for (int t = 0; t < 2; t++) {
+                if (teams[t] != null && out[t] == null && teams[t].equalsIgnoreCase(f[0])) {
+                    out[t] = f[1];
+                    break;
+                }
+            }
+        }
+        return out;
     }
 
     /**

@@ -5,7 +5,9 @@
 - The club is comfortable with polite **scheduled** fetching: every 6 hours, one request at a time, an identifying User-Agent, robots.txt respected.
 - **Implemented:** `apps/api`, a Spring Boot service with `ScaStatsController`. See [`apps/api/README.md`](../apps/api/README.md).
   - If a CSV button has no downloadable URL (built client-side), the service reads the same table the button exports, labelled `html-table`.
-- **Not yet verified against the live site.** The build environment's network policy blocked the domain, so header mappings were tested on synthetic files only. The checklist is in the API README.
+- **Real exports received (players, results, schedule):** the parser has been verified against them; see `RealScaExportTest` and the API README.
+  - Batting, bowling and fielding exports are still awaited.
+  - Automatic fetching from the live site is not yet verified, because the build environment's network policy blocks the domain.
 
 ## Sources
 | Source | What | Known access | Status |

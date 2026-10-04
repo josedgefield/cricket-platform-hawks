@@ -514,3 +514,15 @@ table.data th.n { font-family: var(--font-display); font-size: 12px; }
 .warn-callout { background: var(--color-warning-bg); color: var(--color-foreground); margin-bottom: 8px; }
 .warn-callout .i { color: var(--color-warning); }
 .source-note { font-size: 12px; margin: 20px 0 0; }
+.us { font-weight: 700; color: var(--color-link); }
+.link-btn { background: none; border: 0; color: var(--color-link); font: 600 14px var(--font-body); cursor: pointer; min-height: 36px; padding: 0 4px; }
+.squad-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0 12px; }
+.squad-list li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--color-border); min-width: 0; }
+.squad-list .grow { min-width: 0; display: flex; flex-direction: column; }
+.squad-list .title { font-weight: 600; font-size: 14px; line-height: 1.25; overflow-wrap: anywhere; }
+.squad-list .sub { font-size: 12px; color: var(--color-muted-foreground); }
+.squad-list .chip { align-self: flex-start; margin-top: 2px; font-size: 11px; padding: 2px 8px; }
+.next-match .teams .t { min-width: 0; overflow-wrap: anywhere; }
+.next-match .teams .t:first-child { flex: none; }
+.next-match .teams .t:last-child { flex: 1 1 auto; justify-content: flex-end; }
+.next-match .teams .vs { flex: none; }

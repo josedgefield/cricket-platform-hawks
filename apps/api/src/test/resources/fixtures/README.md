@@ -1,5 +1,4 @@
-# Test fixtures — SYNTHETIC
+# Test fixtures
 
-These files are made up for unit tests. Player and team names and all numbers are fictional.
-They use plausible CricClubs-style headers but are **not** copies of the real SCA exports;
-once the site is reachable, add real-header samples (with permission) and extend the tests.
+- `synthetic-*.csv`: **made up** for unit tests. All names and numbers are fictional.
+- `sca-2025-div3/`: **real** CSV exports from the SCA site (SCA Clubs Division 3 - 2025, HAWKS CC), downloaded with each team page's CSV button and supplied by the club. These are public league data (squad names, fixtures, results, officials). Don't add private member data here.

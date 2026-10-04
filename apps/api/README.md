@@ -18,7 +18,7 @@ cd apps/api
 SCA_ADMIN_KEY=change-me ./gradlew bootRun
 # Swagger UI:  http://localhost:8080/swagger-ui.html
 # Stats page:  cd ../../design/prototype && python3 -m http.server 8000 → http://localhost:8000/app-stats.html
-./gradlew test       # 32 tests
+./gradlew test       # 35 tests
 ```
 
 | Env var | Default | Purpose |
@@ -64,13 +64,27 @@ Every response is `{ "data": …, "meta": { "sources": [{ dataset, url, method, 
    - Overs are converted to balls.
    - Unmapped columns are kept in each record's `extra`.
 
-## Still to verify against the live site
-The build environment's network policy blocked `scores.cricketsingapore.com`, so everything has only been tested against **synthetic** pages and CSVs (`src/test/resources/fixtures`). Once the site is reachable:
-- [ ] Confirm which pages offer a downloadable CSV and which build it client-side (check `/api/sca/sync/status` → `method`).
-- [ ] Check the real header names map correctly (`GET /api/sca/raw/{dataset}` against the typed endpoints), and add any missing aliases in `ScaNormalizer`.
-- [ ] Confirm the date order. CricClubs is usually `MM/dd/yyyy` (`sca.date-order: MDY`).
-- [ ] Confirm the team appears as "Hawks" in result text (`sca.team-name-keyword`).
-- [ ] Add real-header sample files (anonymised if needed) as test fixtures.
+## Load the club's CSV exports (works without site access)
+```bash
+# with the API running and SCA_ADMIN_KEY=change-me
+F=src/test/resources/fixtures/sca-2025-div3
+for d in players results schedule; do
+  curl -H "X-Admin-Key: change-me" -F "file=@$F/$d.csv" http://localhost:8080/api/sca/import/$d
+done
+# refresh the prototype's offline snapshot from the API
+python3 scripts/export_snapshot.py
+```
+`design/prototype/data/sca-snapshot.js` holds real API responses. The prototype uses it whenever it isn't served from localhost, or with `?source=snapshot`, and labels the data as a snapshot.
+
+## Verified against real exports (SCA Clubs Division 3 - 2025, HAWKS CC)
+The club supplied the players, results and schedule CSVs (`src/test/resources/fixtures/sca-2025-div3/`). `RealScaExportTest` pins the parser to them:
+- [x] Dates are `MM/dd/yyyy` (`sca.date-order: MDY`).
+- [x] The team appears as `HAWKS CC` in result text, so W/L is derived correctly (7 W, 4 L, 1 abandoned).
+- [x] The results export has no per-team score columns. Both innings come in `SCORE SUMMARY` (`HAWKS CC: 282/4(28.0)WARRIORS CC 2: 152/10(22.2)`) and are split per team.
+- [x] Squad player ids come from the `CC Player Id` column.
+- [x] Schedule columns map directly (`Date`, `Time`, `Team One`, `Team Two`, `Ground`). Umpires and scorers are kept in `extra`.
+- [ ] Batting, bowling and fielding exports haven't been supplied yet, so their header aliases are still untested on real files.
+- [ ] Automatic download: whether each page's CSV button has a downloadable URL or builds the file client-side is still unknown, because the build environment can't reach the site.
 
 ## Storage
 File-based for now (`snapshot.json` plus the raw CSV archive). This gets replaced by the planned Postgres `source_records` / `sync_runs` tables (docs/04) when the database lands.

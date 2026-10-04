@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="proto-bar"><div class="wrap"><span>Prototype · Player app · Stats (live from SCA)</span><span><a href="index.html">Website</a> · <button class="btn-ghost-light btn btn-sm" style="min-height:32px" onclick="hawksToggleTheme()">Theme</button></span></div></div>
+<div class="proto-bar"><div class="wrap"><span>Prototype · Player app · Stats (SCA data)</span><span><a href="index.html">Website</a> · <button class="btn-ghost-light btn btn-sm" style="min-height:32px" onclick="hawksToggleTheme()">Theme</button></span></div></div>
 <div class="proto-stage">
 <div class="phone">
   <header class="app-header">
@@ -22,8 +22,18 @@
     <div id="banner"></div>
 
     <section class="block" aria-labelledby="rec-h" style="margin-top:4px">
-      <div class="block-head"><h2 id="rec-h">Season record</h2></div>
+      <div class="block-head"><h2 id="rec-h">Season record</h2><span class="chip" id="comp-chip">SCA</span></div>
       <div class="card record-card" id="record"><div class="skeleton" style="height:64px"></div></div>
+    </section>
+
+    <section class="block" aria-labelledby="up-h">
+      <div class="block-head"><h2 id="up-h">Next up</h2></div>
+      <div id="upcoming"><div class="skeleton" style="height:120px"></div></div>
+    </section>
+
+    <section class="block" aria-labelledby="res-h">
+      <div class="block-head"><h2 id="res-h">Results</h2><button class="link-btn" id="more-results" hidden>Show all</button></div>
+      <div id="results"><div class="skeleton" style="height:96px"></div></div>
     </section>
 
     <section class="block" aria-labelledby="ld-h">
@@ -31,16 +41,6 @@
       <div class="leader-grid" id="leaders">
         <div class="skeleton" style="height:120px"></div><div class="skeleton" style="height:120px"></div>
       </div>
-    </section>
-
-    <section class="block" aria-labelledby="up-h">
-      <div class="block-head"><h2 id="up-h">Upcoming</h2></div>
-      <div class="card" style="padding:0 16px" id="upcoming"><div class="skeleton" style="height:56px;margin:14px 0"></div></div>
-    </section>
-
-    <section class="block" aria-labelledby="res-h">
-      <div class="block-head"><h2 id="res-h">Results</h2></div>
-      <div id="results"><div class="skeleton" style="height:96px"></div></div>
     </section>
 
     <section class="block" aria-labelledby="tbl-h">
@@ -56,7 +56,12 @@
       <div class="card table-scroll" id="table" role="tabpanel"><div class="skeleton" style="height:140px"></div></div>
     </section>
 
-    <p class="muted source-note" id="source-note">Source: Singapore Cricket Association (scores.cricketsingapore.com) team pages, via each page's CSV export. "—" means the source didn't record a value; we never estimate it.</p>
+    <section class="block" aria-labelledby="sq-h">
+      <div class="block-head"><h2 id="sq-h">Squad</h2><span class="muted" id="squad-count" style="font-size:13px"></span></div>
+      <div class="card" style="padding:4px 16px" id="squad"><div class="skeleton" style="height:120px;margin:12px 0"></div></div>
+    </section>
+
+    <p class="muted source-note" id="source-note">Source: Singapore Cricket Association team pages (scores.cricketsingapore.com), via each page's CSV export. "—" means the source didn't record a value; we never estimate it.</p>
   </div>
 
   <nav class="tabbar" aria-label="App">
@@ -69,21 +74,23 @@
 </div>
 </div>
 <script src="icons.js"></script>
+<script src="data/sca-snapshot.js"></script>
 <script src="sca-api.js"></script>
 <script>
 (function () {
-  var A = HawksApi, esc = A.esc, val = A.val;
+  var A = HawksApi, esc = A.esc, val = A.val, T = A.teamName;
   var SORTS = {
     batting: [['runs', 'Runs'], ['average', 'Average'], ['strikerate', 'Strike rate'], ['sixes', 'Sixes'], ['name', 'Name']],
     bowling: [['wickets', 'Wickets'], ['economy', 'Economy'], ['average', 'Average'], ['strikerate', 'Strike rate'], ['name', 'Name']],
     fielding: [['catches', 'Catches'], ['dismissals', 'Dismissals'], ['stumpings', 'Stumpings'], ['runouts', 'Run outs'], ['name', 'Name']]
   };
   var kind = 'batting';
+  var allResults = [];
   var $ = function (id) { return document.getElementById(id); };
 
   function errorBox(err) {
     return '<div class="card state-card" role="alert"><svg class="i i-lg" aria-hidden="true"><use href="#i-alert"/></svg>' +
-      '<div><h3>Can\'t reach the Hawks stats service</h3><p class="muted">Tried <code>' + esc(A.base()) + '</code> (' + esc(err.message || err) + '). ' +
+      '<div><h3>Can\'t load SCA data</h3><p class="muted">' + esc(err.message || err) + '. ' +
       'Start the API (<code>apps/api</code>) or open this page with <code>?api=https://your-api</code>.</p>' +
       '<button class="btn btn-navy btn-sm" onclick="location.reload()">Try again</button></div></div>';
   }
@@ -91,39 +98,87 @@
     return '<div class="empty-note"><svg class="i" aria-hidden="true"><use href="#i-hourglass"/></svg><span>' + esc(msg) + '</span></div>';
   }
   function num(v, d) { return typeof v === 'number' ? (d != null ? v.toFixed(d) : String(v)) : val(v); }
+  function team(name) { return '<span class="' + (A.isUs(name) ? 'us' : '') + '">' + esc(T(name)) + '</span>'; }
 
   // ---------- record
   function renderRecord(r) {
     var d = r.data;
     if (!d || !d.played) { $('record').innerHTML = empty('No results synced yet.'); return; }
+    var labels = { W: 'Won', L: 'Lost', T: 'Tied', NR: 'No result', A: 'Abandoned', '?': 'Result unclear' };
     var form = (d.form || []).map(function (f) {
       var cls = f === 'W' ? 'status-ok' : f === 'L' ? 'status-bad' : 'status-info';
-      var label = { W: 'Won', L: 'Lost', T: 'Tied', NR: 'No result', A: 'Abandoned', '?': 'Result unclear' }[f] || f;
-      return '<span class="status ' + cls + ' form-pill" title="' + label + '"><span aria-hidden="true">' + esc(f) + '</span><span class="sr-only">' + label + '</span></span>';
+      return '<span class="status ' + cls + ' form-pill" title="' + labels[f] + '"><span aria-hidden="true">' + esc(f) + '</span><span class="sr-only">' + labels[f] + '</span></span>';
     }).join('');
+    var decided = d.won + d.lost;
+    var pct = decided ? Math.round(d.won / decided * 100) : null;
     $('record').innerHTML =
       '<div class="record-row">' +
       '<div><b class="num">' + d.won + '</b><small>Won</small></div>' +
       '<div><b class="num">' + d.lost + '</b><small>Lost</small></div>' +
       '<div><b class="num">' + (d.tied + d.noResult + d.abandoned) + '</b><small>T / NR / Ab</small></div>' +
-      '<div><b class="num">' + d.played + '</b><small>Played</small></div></div>' +
-      '<div class="form-row"><span class="muted">Last ' + (d.form || []).length + '</span>' + form + '</div>' +
-      (d.undetermined ? '<p class="muted" style="font-size:13px;margin:8px 0 0">' + d.undetermined + ' result(s) could not be read as a win or loss; see Results.</p>' : '');
+      '<div><b class="num">' + (pct == null ? '—' : pct + '%') + '</b><small>Win rate</small></div></div>' +
+      '<div class="form-row"><span class="muted">Last ' + (d.form || []).length + ' (newest first)</span>' + form + '</div>' +
+      '<p class="muted" style="font-size:12px;margin:8px 0 0">' + d.played + ' matches · win rate excludes abandoned/no-result games</p>' +
+      (d.undetermined ? '<p class="muted" style="font-size:13px;margin:6px 0 0">' + d.undetermined + ' result(s) could not be read as a win or loss.</p>' : '');
   }
+
+  // ---------- next match + later fixtures
+  function renderUpcoming(r) {
+    var rows = r.data || [];
+    if (!rows.length) { $('upcoming').innerHTML = '<div class="card">' + empty('No upcoming matches in the SCA schedule.') + '</div>'; return; }
+    var f = rows[0], opp = A.opponent(f), home = A.isUs(f.teamOne);
+    var ko = A.kickoff(f), days = ko ? Math.ceil((ko - Date.now()) / 864e5) : null;
+    var html = '<article class="card next-match">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">' +
+      '<span class="chip chip-navy">' + esc((f.competition || 'SCA').replace(/ - \d{4}$/, '').replace('SCA Clubs ', '')) + '</span>' +
+      (days != null && days >= 0 ? '<span class="status status-info"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg> ' + (days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : 'In ' + days + ' days') + '</span>' : '') +
+      '</div><div class="teams">' +
+      '<div class="t"><span class="mini-crest"><img src="hawks-logo.jpg" alt=""></span>Hawks</div>' +
+      '<span class="vs" style="font-size:16px">' + (home ? 'VS' : '@') + '</span>' +
+      '<div class="t" style="text-align:right">' + esc(T(opp)) + '<span class="mini-crest away" aria-hidden="true">' + esc(A.crestText(opp)) + '</span></div></div>' +
+      '<div class="meta-row"><span><svg class="i i-sm" aria-hidden="true"><use href="#i-calendar"/></svg> ' + A.niceDate(f.date, f.dateText) + (f.time ? ' · ' + esc(f.time) : '') + '</span>' +
+      (f.venue ? '<span><svg class="i i-sm" aria-hidden="true"><use href="#i-map"/></svg> ' + esc(f.venue) + '</span>' : '') + '</div></article>';
+    if (rows.length > 1) {
+      html += '<div class="card" style="padding:0 16px;margin-top:10px">' + rows.slice(1).map(function (g) {
+        return '<div class="list-row"><div class="grow"><div class="title">' + team(g.teamOne) + ' <span class="muted">v</span> ' + team(g.teamTwo) + '</div>' +
+          '<div class="sub">' + [A.niceDate(g.date, g.dateText), esc(g.time), esc(g.venue)].filter(Boolean).join(' · ') + '</div></div></div>';
+      }).join('') + '</div>';
+    }
+    $('upcoming').innerHTML = html;
+  }
+
+  // ---------- results
+  function resultCard(m) {
+    var oneWon = /won/i.test(m.result || '') && (m.result || '').toUpperCase().indexOf((m.teamOne || '').toUpperCase()) === 0;
+    var twoWon = /won/i.test(m.result || '') && !oneWon;
+    return '<article class="card result" style="margin-bottom:10px">' +
+      '<div class="result-top"><span class="muted" style="font-size:13px;font-weight:600">' + A.niceDate(m.date, m.dateText, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + '</span>' + A.outcomeChip(m.outcome) + '</div>' +
+      '<div><div class="score-row' + (oneWon ? ' won' : '') + '"><span class="team">' + team(m.teamOne) + '</span><span class="score num">' + val(m.teamOneScore) + '</span></div>' +
+      '<div class="score-row' + (twoWon ? ' won' : '') + '"><span class="team">' + team(m.teamTwo) + '</span><span class="score num">' + val(m.teamTwoScore) + '</span></div></div>' +
+      '<div class="result-foot">' + esc(m.result || '') + '</div></article>';
+  }
+  function renderResults(showAll) {
+    if (!allResults.length) { $('results').innerHTML = '<div class="card">' + empty('No results synced yet.') + '</div>'; return; }
+    $('results').innerHTML = (showAll ? allResults : allResults.slice(0, 4)).map(resultCard).join('');
+    $('more-results').hidden = showAll || allResults.length <= 4;
+  }
+  $('more-results').addEventListener('click', function () { renderResults(true); });
 
   // ---------- leaders
   var BOARD_ORDER = ['mostRuns', 'mostWickets', 'bestBattingAverage', 'bestEconomy', 'bestStrikeRate', 'mostCatches', 'mostDismissals'];
   var DECIMALS = { bestBattingAverage: 2, bestStrikeRate: 2, bestEconomy: 2 };
   function renderLeaders(r) {
     var boards = (r.data || []).filter(function (b) { return b.leaders && b.leaders.length; });
-    if (!boards.length) { $('leaders').innerHTML = empty('No batting, bowling or fielding stats synced yet.'); return; }
+    if (!boards.length) {
+      $('leaders').innerHTML = '<div class="card" style="grid-column:1/-1">' + empty('Leaders appear once the batting, bowling and fielding CSVs from the SCA site are added.') + '</div>';
+      return;
+    }
     boards.sort(function (a, b) { return BOARD_ORDER.indexOf(a.key) - BOARD_ORDER.indexOf(b.key); });
     $('leaders').innerHTML = boards.map(function (b) {
       var top = b.leaders[0], rest = b.leaders.slice(1);
-      var initials = (top.name || '?').split(/\s+/).map(function (p) { return p[0]; }).join('').slice(0, 2).toUpperCase();
       return '<article class="card card--accent leader-card">' +
         '<div class="lbl">' + esc(b.label) + '</div>' +
-        '<div class="leader-top"><div class="avatar avatar-sm" aria-hidden="true">' + esc(initials) + '</div>' +
+        '<div class="leader-top"><div class="avatar avatar-sm" aria-hidden="true">' + esc(A.crestText(top.name)) + '</div>' +
         '<div><div class="big num">' + num(top.value, DECIMALS[b.key]) + '</div><div class="leader-name">' + esc(top.name) + '</div></div></div>' +
         '<div class="muted leader-detail">' + esc(top.detail || '') + '</div>' +
         (rest.length ? '<ol class="runners">' + rest.map(function (l) {
@@ -131,38 +186,6 @@
         }).join('') + '</ol>' : '') +
         (b.qualification ? '<div class="qual">' + esc(b.qualification) + '</div>' : '') +
         '</article>';
-    }).join('');
-  }
-
-  // ---------- fixtures & results
-  function teamsLine(a, b) { return esc(a || 'TBC') + ' <span class="muted">v</span> ' + esc(b || 'TBC'); }
-  function niceDate(iso, text) {
-    if (!iso) return esc(text || 'Date TBC');
-    var d = new Date(iso + 'T00:00:00');
-    return d.toLocaleDateString('en-SG', { weekday: 'short', day: 'numeric', month: 'short' });
-  }
-  function renderUpcoming(r) {
-    var rows = r.data || [];
-    if (!rows.length) { $('upcoming').innerHTML = empty('No upcoming matches in the SCA schedule.'); return; }
-    $('upcoming').innerHTML = rows.map(function (f) {
-      return '<div class="list-row"><div class="date-badge"><b class="num">' + (f.date ? new Date(f.date + 'T00:00:00').getDate() : '?') + '</b><small>' +
-        (f.date ? new Date(f.date + 'T00:00:00').toLocaleDateString('en-SG', { month: 'short' }) : 'TBC') + '</small></div>' +
-        '<div class="grow"><div class="title">' + teamsLine(f.teamOne, f.teamTwo) + '</div>' +
-        '<div class="sub">' + [niceDate(f.date, f.dateText), esc(f.time), esc(f.venue), esc(f.competition)].filter(Boolean).join(' · ') + '</div></div></div>';
-    }).join('');
-  }
-  function renderResults(r) {
-    var rows = r.data || [];
-    if (!rows.length) { $('results').innerHTML = '<div class="card">' + empty('No results synced yet.') + '</div>'; return; }
-    var chip = { WON: ['status-ok', 'Won'], LOST: ['status-bad', 'Lost'], TIED: ['status-info', 'Tied'], NO_RESULT: ['status-info', 'No result'], ABANDONED: ['status-info', 'Abandoned'] };
-    $('results').innerHTML = rows.map(function (m) {
-      var c = chip[m.outcome];
-      return '<article class="card result" style="margin-bottom:10px">' +
-        '<div class="result-top"><span class="chip chip-navy">' + esc(m.competition || 'SCA') + '</span>' +
-        (c ? '<span class="status ' + c[0] + '">' + c[1] + '</span>' : '') + '</div>' +
-        '<div><div class="score-row"><span class="team">' + esc(m.teamOne || '—') + '</span><span class="score num">' + val(m.teamOneScore) + '</span></div>' +
-        '<div class="score-row"><span class="team">' + esc(m.teamTwo || '—') + '</span><span class="score num">' + val(m.teamTwoScore) + '</span></div></div>' +
-        '<div class="result-foot">' + [niceDate(m.date, m.dateText), esc(m.result), esc(m.venue)].filter(Boolean).join(' · ') + '</div></article>';
     }).join('');
   }
 
@@ -179,8 +202,8 @@
     $('table').setAttribute('aria-busy', 'true');
     A.get('/api/sca/' + kind + '?sort=' + encodeURIComponent($('sort').value)).then(function (r) {
       var rows = r.data || [];
-      // Hide columns the source didn't provide for anyone.
       var cols = COLS[kind].filter(function (c, i) { return i === 0 || rows.some(function (row) { return row[c[0]] != null; }); });
+      $('sort').disabled = !rows.length;
       $('table').innerHTML = rows.length ? '<table class="data stats-table"><caption class="sr-only">' + kind + ' stats</caption><thead><tr>' +
         cols.map(function (c) { return '<th scope="col"' + (c[2] ? ' class="n"' : '') + '>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
         rows.map(function (row) {
@@ -188,9 +211,10 @@
             var v = row[c[0]];
             return i === 0 ? '<th scope="row">' + esc(v) + '</th>' : '<td class="n">' + num(v, c[3]) + '</td>';
           }).join('') + '</tr>';
-        }).join('') + '</tbody></table>' : empty('No ' + kind + ' stats synced yet.');
+        }).join('') + '</tbody></table>'
+        : '<div style="padding:4px 16px">' + empty('Waiting for the ' + kind + ' CSV from the SCA team page.') + '</div>';
       $('table').removeAttribute('aria-busy');
-    }).catch(function (e) { $('table').innerHTML = empty('Could not load ' + kind + ' stats: ' + e.message); });
+    }).catch(function (e) { $('table').innerHTML = '<div style="padding:4px 16px">' + empty('Could not load ' + kind + ' stats: ' + e.message) + '</div>'; });
   }
   document.querySelectorAll('.tabs [data-kind]').forEach(function (b) {
     b.addEventListener('click', function () {
@@ -201,25 +225,45 @@
   });
   $('sort').addEventListener('change', loadTable);
 
+  // ---------- squad
+  function renderSquad(r) {
+    var rows = (r.data || []).slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+    $('squad-count').textContent = rows.length ? rows.length + ' registered' : '';
+    if (!rows.length) { $('squad').innerHTML = empty('No squad list synced yet.'); return; }
+    $('squad').innerHTML = '<ul class="squad-list">' + rows.map(function (p) {
+      var jersey = p.extra && p.extra['Jersey Number'];
+      var name = p.name.replace(/\s*\((?:[^)]*admin[^)]*)\)\s*$/i, '');
+      var admin = name !== p.name;
+      return '<li><span class="avatar avatar-sm" aria-hidden="true">' + esc(jersey || A.crestText(name)) + '</span>' +
+        '<span class="grow"><span class="title">' + esc(name) + '</span>' + (admin ? ' <span class="chip">Club admin</span>' : '') +
+        (jersey ? '<span class="sub">#' + esc(jersey) + '</span>' : '') + '</span></li>';
+    }).join('') + '</ul>';
+  }
+
   // ---------- load everything
   function loadAll() {
     $('sync-line').textContent = 'Loading SCA data…';
     Promise.all([
-      A.get('/api/sca/record'), A.get('/api/sca/leaders?top=3'), A.get('/api/sca/schedule?limit=5'), A.get('/api/sca/results?limit=5')
+      A.get('/api/sca/record'), A.get('/api/sca/schedule?limit=5'), A.get('/api/sca/results'), A.get('/api/sca/leaders?top=3'), A.get('/api/sca/players')
     ]).then(function (r) {
-      renderRecord(r[0]); renderLeaders(r[1]); renderUpcoming(r[2]); renderResults(r[3]);
-      var info = A.syncInfo({ sources: [].concat(r[0].meta.sources, r[1].meta.sources, r[2].meta.sources) });
+      renderRecord(r[0]); renderUpcoming(r[1]);
+      allResults = r[2].data || []; renderResults(false);
+      renderLeaders(r[3]); renderSquad(r[4]);
+      var next = (r[1].data || [])[0], comp = next && next.competition || '';
+      if (comp) $('comp-chip').textContent = comp.replace('SCA Clubs ', 'SCA ');
+      var info = A.syncInfo({ sources: [].concat(r[0].meta.sources, r[1].meta.sources, r[4].meta.sources) });
       $('sync-line').textContent = info.text;
       var notes = [];
-      if (!info.synced) notes.push('The first sync from the SCA site hasn\'t completed yet.');
+      if (info.mode === 'snapshot') notes.push('Showing a snapshot of the SCA CSV exports from ' + new Date(A.snapshot.generatedAt).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }) + (A.state.liveError ? ' (live API unreachable).' : '.'));
+      else if (!info.synced) notes.push('The first sync from the SCA site hasn\'t completed yet.');
       else if (info.stale) notes.push('Some data is more than a week old.');
-      if (info.failed.length) notes.push('Last sync failed for ' + info.failed.map(function (s) { return s.dataset.toLowerCase(); }).join(', ') + ' — showing the last good data.');
-      $('banner').innerHTML = notes.length ? '<div class="callout warn-callout" role="status"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span>' + esc(notes.join(' ')) + '</span></div>' : '';
+      if (info.failed.length) notes.push('Last sync failed for ' + info.failed.map(function (s) { return s.dataset.toLowerCase(); }).join(', ') + ', so you\'re seeing the last good data.');
+      $('banner').innerHTML = notes.length ? '<div class="callout ' + (info.mode === 'snapshot' ? '' : 'warn-callout') + '" role="status" style="margin-bottom:8px"><svg class="i" aria-hidden="true"><use href="#i-' + (info.mode === 'snapshot' ? 'file' : 'alert') + '"/></svg><span>' + esc(notes.join(' ')) + '</span></div>' : '';
       if (info.url) $('source-note').innerHTML = 'Source: <a href="' + esc(info.url) + '" rel="noopener" target="_blank">Singapore Cricket Association team pages</a>, via each page\'s CSV export. "—" means the source didn\'t record a value; we never estimate it.';
     }).catch(function (e) {
-      $('sync-line').textContent = 'Offline';
+      $('sync-line').textContent = 'Unavailable';
       $('banner').innerHTML = errorBox(e);
-      ['record', 'leaders', 'upcoming', 'results'].forEach(function (id) { $(id).innerHTML = empty('Unavailable'); });
+      ['record', 'upcoming', 'results', 'leaders', 'squad'].forEach(function (id) { $(id).innerHTML = empty('Unavailable'); });
     });
     setSorts(); loadTable();
   }

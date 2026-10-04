@@ -30,17 +30,8 @@
   </div>
 </header>
 
-<div class="ticker" aria-label="Latest results">
-  <div class="ticker-track">
-    <span>SCA Div 2 <b>Hawks 184/6</b> bt Kallang Kings 162 · by 22 runs</span>
-    <span>BPL <b>Hawks 151/4</b> bt Raffles Ravens 148/9 · by 6 wkts</span>
-    <span>IAT30 <b>Tanjong Tigers 201/5</b> bt Hawks 188/8 · by 13 runs</span>
-    <span>Next · Sat 11 Oct · vs Marina Mariners · 09:30</span>
-    <span>SCA Div 2 <b>Hawks 184/6</b> bt Kallang Kings 162 · by 22 runs</span>
-    <span>BPL <b>Hawks 151/4</b> bt Raffles Ravens 148/9 · by 6 wkts</span>
-    <span>IAT30 <b>Tanjong Tigers 201/5</b> bt Hawks 188/8 · by 13 runs</span>
-    <span>Next · Sat 11 Oct · vs Marina Mariners · 09:30</span>
-  </div>
+<div class="ticker" aria-label="Latest results and next match">
+  <div class="ticker-track" id="ticker"><span>Loading SCA results…</span></div>
 </div>
 
 <main>
@@ -57,27 +48,27 @@
         <a class="btn btn-ghost-light" href="#fixtures">See fixtures</a>
       </div>
       <div class="hero-badges">
-        <span class="chip">SCA Club League</span><span class="chip">BPL</span><span class="chip">IAT30</span>
+        <span class="chip" id="hero-division">SCA Club League</span><span class="chip">BPL</span><span class="chip">IAT30</span>
       </div>
     </div>
 
     <aside class="match-hero" id="fixtures" aria-labelledby="nm-title">
-      <span class="eyebrow" id="nm-title">Next match · SCA Div 2 · Round 9</span>
+      <span class="eyebrow" id="nm-title">Next match</span>
       <div class="versus">
         <div><div class="crest crest-home"><img src="hawks-logo.jpg" alt=""></div><div class="team-name">Hawks CC</div></div>
-        <div class="vs">VS</div>
-        <div><div class="crest crest-away" aria-hidden="true">MM</div><div class="team-name">Marina Mariners</div></div>
+        <div class="vs" id="nm-vs">VS</div>
+        <div><div class="crest crest-away" aria-hidden="true" id="nm-crest">?</div><div class="team-name" id="nm-opp">Loading…</div></div>
       </div>
       <div class="countdown" id="countdown" aria-label="Time until first ball">
-        <div><b id="cd-d">06</b><small>Days</small></div>
-        <div><b id="cd-h">14</b><small>Hrs</small></div>
-        <div><b id="cd-m">22</b><small>Min</small></div>
-        <div><b id="cd-s">09</b><small>Sec</small></div>
+        <div><b id="cd-d">--</b><small>Days</small></div>
+        <div><b id="cd-h">--</b><small>Hrs</small></div>
+        <div><b id="cd-m">--</b><small>Min</small></div>
+        <div><b id="cd-s">--</b><small>Sec</small></div>
       </div>
       <div class="match-meta">
-        <div><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg> Sat 11 Oct 2026 · 09:30 first ball</div>
-        <div><svg class="i" aria-hidden="true"><use href="#i-map"/></svg> Kallang Cricket Ground</div>
-        <div><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg> 40 overs · whites</div>
+        <div><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg> <span id="nm-when">—</span></div>
+        <div><svg class="i" aria-hidden="true"><use href="#i-map"/></svg> <span id="nm-where">—</span></div>
+        <div><svg class="i" aria-hidden="true"><use href="#i-trophy"/></svg> <span id="nm-comp">—</span></div>
       </div>
     </aside>
   </div>
@@ -86,24 +77,25 @@
 <section class="section" aria-labelledby="comp-h">
   <div class="wrap">
     <div class="section-head">
-      <div><span class="eyebrow">Season 2026</span><h2 id="comp-h">Where we play</h2></div>
-      <span class="synced"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg> Last synced 2 h ago</span>
+      <div><span class="eyebrow" id="season-eyebrow">This season</span><h2 id="comp-h">Where we play</h2></div>
+      <span class="synced" id="site-sync"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg> Loading…</span>
     </div>
     <div class="comp-grid">
       <article class="card comp-card">
         <div class="comp-tag">SCA</div>
-        <div class="muted">Club League · Division 2</div>
-        <div class="rec"><div><b class="num">6</b><small>Won</small></div><div><b class="num">2</b><small>Lost</small></div><div><b class="num">3rd</b><small>Table</small></div></div>
+        <div class="muted" id="sca-division">Club League</div>
+        <div class="rec" id="sca-rec"><div><b class="num">–</b><small>Won</small></div><div><b class="num">–</b><small>Lost</small></div><div><b class="num">–</b><small>Played</small></div></div>
+        <div class="form-row" id="sca-form" style="border-top:0;padding-top:0"></div>
       </article>
       <article class="card comp-card">
         <div class="comp-tag">BPL</div>
-        <div class="muted">T20 tournament</div>
-        <div class="rec"><div><b class="num">4</b><small>Won</small></div><div><b class="num">1</b><small>Lost</small></div><div><b class="num">SF</b><small>Stage</small></div></div>
+        <div class="muted">Tournament</div>
+        <p class="muted" style="font-size:14px;margin:16px 0 0">Results feed not connected yet.</p>
       </article>
       <article class="card comp-card">
         <div class="comp-tag">IAT30</div>
         <div class="muted">30-over tournament</div>
-        <div class="rec"><div><b class="num">2</b><small>Won</small></div><div><b class="num">2</b><small>Lost</small></div><div><b class="num">—</b><small>Group</small></div></div>
+        <p class="muted" style="font-size:14px;margin:16px 0 0">Results feed not connected yet.</p>
       </article>
     </div>
   </div>
@@ -115,47 +107,16 @@
       <div><span class="eyebrow">Scorecards</span><h2 id="res-h">Latest results</h2></div>
       <a class="btn btn-ghost btn-sm" href="app-stats.html">All results</a>
     </div>
-    <div class="results">
-      <article class="card result">
-        <div class="result-top"><span class="chip chip-navy">SCA Div 2</span><span class="status status-ok"><svg class="i i-sm" aria-hidden="true"><use href="#i-trophy"/></svg> Won</span></div>
-        <div>
-          <div class="score-row won"><span class="team">Hawks CC</span><span class="score num">184/6<small>(40)</small></span></div>
-          <div class="score-row"><span class="team">Kallang Kings</span><span class="score num">162<small>(37.2)</small></span></div>
-        </div>
-        <div class="result-foot">Hawks won by 22 runs · PoM: Arjun M. 71 (58)</div>
-      </article>
-      <article class="card result">
-        <div class="result-top"><span class="chip chip-navy">BPL</span><span class="status status-ok"><svg class="i i-sm" aria-hidden="true"><use href="#i-trophy"/></svg> Won</span></div>
-        <div>
-          <div class="score-row"><span class="team">Raffles Ravens</span><span class="score num">148/9<small>(20)</small></span></div>
-          <div class="score-row won"><span class="team">Hawks CC</span><span class="score num">151/4<small>(18.3)</small></span></div>
-        </div>
-        <div class="result-foot">Hawks won by 6 wickets · PoM: Kiran P. 4/21</div>
-      </article>
-      <article class="card result">
-        <div class="result-top"><span class="chip chip-navy">IAT30</span><span class="status status-bad"><svg class="i i-sm" aria-hidden="true"><use href="#i-x"/></svg> Lost</span></div>
-        <div>
-          <div class="score-row won"><span class="team">Tanjong Tigers</span><span class="score num">201/5<small>(30)</small></span></div>
-          <div class="score-row"><span class="team">Hawks CC</span><span class="score num">188/8<small>(30)</small></span></div>
-        </div>
-        <div class="result-foot">Tigers won by 13 runs · Daniel T. 64 (41)</div>
-      </article>
-    </div>
+    <div class="results" id="site-results"><div class="card result"><div class="skeleton" style="height:120px"></div></div></div>
   </div>
 </section>
 
 <section class="section" id="stats" aria-labelledby="st-h" style="padding-top:0">
   <div class="wrap">
     <div class="section-head">
-      <div><span class="eyebrow">All competitions · 2026</span><h2 id="st-h">Season leaders</h2></div>
-      <span class="synced">Source: SCA export + BPL/IAT30 scorers</span>
+      <div><span class="eyebrow">SCA Club League</span><h2 id="st-h">Season leaders</h2></div>
     </div>
-    <div class="leaders">
-      <article class="card card--accent leader"><div class="avatar">AM</div><div><div class="lbl">Most runs</div><div class="big num">512</div><div class="muted">Arjun M. · avg 46.5</div></div></article>
-      <article class="card card--accent leader"><div class="avatar">KP</div><div><div class="lbl">Most wickets</div><div class="big num">27</div><div class="muted">Kiran P. · econ 4.8</div></div></article>
-      <article class="card card--accent leader"><div class="avatar">DT</div><div><div class="lbl">Best strike rate</div><div class="big num">148.2</div><div class="muted">Daniel T. · min 100 balls</div></div></article>
-      <article class="card card--accent leader"><div class="avatar">SW</div><div><div class="lbl">Most dismissals</div><div class="big num">19</div><div class="muted">Sam W. · keeper</div></div></article>
-    </div>
+    <div class="leaders" id="site-leaders"></div>
   </div>
 </section>
 
@@ -227,27 +188,102 @@
       <div><h4>Members</h4><a href="app-home.html">Player login</a><a href="admin-reconcile.html">Committee console</a><a href="#">Privacy notice</a></div>
       <div><h4>Contact</h4><a href="#"><span style="display:inline-flex;gap:8px;align-items:center"><svg class="i i-sm" aria-hidden="true"><use href="#i-mail"/></svg> hello@hawks.example</span></a><a href="#">Instagram</a><a href="#">Facebook</a></div>
     </div>
-    <div class="foot-note">© 2026 Hawks Cricket Club · Design prototype: all names, scores and figures are fictional.
+    <div class="foot-note">© 2026 Hawks Cricket Club · Fixtures, results and squad data from the Singapore Cricket Association site (CSV exports). Other content is illustrative.
       <button class="btn btn-ghost-light btn-sm" style="margin-left:8px" onclick="hawksToggleTheme()"><svg class="i i-sm" aria-hidden="true"><use href="#i-moon"/></svg> Theme</button>
     </div>
   </div>
 </footer>
 
 <script src="icons.js"></script>
+<script src="data/sca-snapshot.js"></script>
+<script src="sca-api.js"></script>
 <script>
-  // Countdown to a fictional fixture (Sat 11 Oct 2026, 09:30 SGT)
-  (function () {
-    var target = new Date('2026-10-11T09:30:00+08:00').getTime();
-    function pad(n) { return String(n).padStart(2, '0'); }
+(function () {
+  var A = HawksApi, esc = A.esc, T = A.teamName, $ = function (id) { return document.getElementById(id); };
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function nextMatch(r) {
+    var f = r.data;
+    if (!f) { $('nm-opp').textContent = 'No match scheduled'; $('nm-crest').textContent = '–'; return; }
+    var opp = A.opponent(f), home = A.isUs(f.teamOne), ko = A.kickoff(f);
+    $('nm-title').textContent = 'Next match · ' + (f.competition || 'SCA').replace(/ - \d{4}$/, '').replace('SCA Clubs ', 'SCA ');
+    $('nm-opp').textContent = T(opp);
+    $('nm-crest').textContent = A.crestText(opp);
+    $('nm-vs').textContent = home ? 'VS' : '@';
+    $('nm-when').textContent = A.niceDate(f.date, f.dateText, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + (f.time ? ' · ' + f.time + ' first ball' : '');
+    $('nm-where').textContent = f.venue || 'Ground TBC';
+    $('nm-comp').textContent = (f.extra && f.extra['Match Type'] ? f.extra['Match Type'] + ' · ' : '') + (f.competition || 'SCA');
+    if (!ko) { $('countdown').hidden = true; return; }
     function tick() {
-      var d = Math.max(0, target - Date.now());
-      document.getElementById('cd-d').textContent = pad(Math.floor(d / 864e5));
-      document.getElementById('cd-h').textContent = pad(Math.floor(d / 36e5) % 24);
-      document.getElementById('cd-m').textContent = pad(Math.floor(d / 6e4) % 60);
-      document.getElementById('cd-s').textContent = pad(Math.floor(d / 1e3) % 60);
+      var d = Math.max(0, ko - Date.now());
+      $('cd-d').textContent = pad(Math.floor(d / 864e5)); $('cd-h').textContent = pad(Math.floor(d / 36e5) % 24);
+      $('cd-m').textContent = pad(Math.floor(d / 6e4) % 60); $('cd-s').textContent = pad(Math.floor(d / 1e3) % 60);
     }
     tick(); setInterval(tick, 1000);
-  })();
+  }
+
+  function record(r) {
+    var d = r.data;
+    if (!d || !d.played) return;
+    $('sca-rec').innerHTML = '<div><b class="num">' + d.won + '</b><small>Won</small></div><div><b class="num">' + d.lost + '</b><small>Lost</small></div><div><b class="num">' + d.played + '</b><small>Played</small></div>';
+    $('sca-form').innerHTML = '<span class="muted" style="font-size:13px">Form</span>' + (d.form || []).map(function (f) {
+      var cls = f === 'W' ? 'status-ok' : f === 'L' ? 'status-bad' : 'status-info';
+      return '<span class="status ' + cls + ' form-pill">' + esc(f) + '</span>';
+    }).join('');
+  }
+
+  function results(r) {
+    var rows = (r.data || []).filter(function (m) { return m.outcome !== 'ABANDONED'; }).slice(0, 3);
+    if (!rows.length) { $('site-results').innerHTML = '<div class="card result"><p class="muted">No results yet.</p></div>'; return; }
+    $('site-results').innerHTML = rows.map(function (m) {
+      var won = function (t) { return /won/i.test(m.result || '') && (m.result || '').toUpperCase().indexOf((t || '').toUpperCase()) === 0; };
+      var score = function (s) { var p = /^(.*?)\s*\((.*)\)$/.exec(s || ''); return p ? esc(p[1]) + '<small>(' + esc(p[2]) + ')</small>' : A.val(s); };
+      return '<article class="card result"><div class="result-top"><span class="chip chip-navy">' +
+        A.niceDate(m.date, m.dateText, { day: 'numeric', month: 'short', year: 'numeric' }) + '</span>' + A.outcomeChip(m.outcome) + '</div><div>' +
+        '<div class="score-row' + (won(m.teamOne) ? ' won' : '') + '"><span class="team">' + esc(T(m.teamOne)) + '</span><span class="score num">' + score(m.teamOneScore) + '</span></div>' +
+        '<div class="score-row' + (won(m.teamTwo) ? ' won' : '') + '"><span class="team">' + esc(T(m.teamTwo)) + '</span><span class="score num">' + score(m.teamTwoScore) + '</span></div>' +
+        '</div><div class="result-foot">' + esc(m.result || '') + '</div></article>';
+    }).join('');
+  }
+
+  function ticker(results, next) {
+    var items = (results.data || []).slice(0, 5).map(function (m) {
+      var hawksScore = A.isUs(m.teamOne) ? m.teamOneScore : m.teamTwoScore;
+      return '<span>' + esc(A.niceDate(m.date, m.dateText, { day: 'numeric', month: 'short' })) + ' · vs ' + esc(T(A.opponent(m))) +
+        (hawksScore ? ' · <b>Hawks ' + esc(hawksScore.replace(/\s*\(.*$/, '')) + '</b>' : '') + ' · ' + esc(m.result || '') + '</span>';
+    });
+    if (next.data) items.unshift('<span><b>Next</b> · ' + esc(A.niceDate(next.data.date, next.data.dateText)) + ' ' + esc(next.data.time || '') + ' · vs ' + esc(T(A.opponent(next.data))) + ' · ' + esc(next.data.venue || '') + '</span>');
+    var html = items.join('');
+    $('ticker').innerHTML = html + html; // duplicated for a seamless loop
+  }
+
+  function leaders(r) {
+    var boards = (r.data || []).filter(function (b) { return b.leaders && b.leaders.length && ['mostRuns', 'mostWickets', 'bestStrikeRate', 'mostDismissals'].indexOf(b.key) >= 0; });
+    if (!boards.length) {
+      $('site-leaders').innerHTML = '<article class="card leader" style="grid-column:1/-1"><div class="avatar"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg></div><div><div class="lbl">Coming soon</div><div class="muted">Season leaders appear once the batting, bowling and fielding exports from the SCA site are loaded. <a href="app-stats.html">See the stats page</a>.</div></div></article>';
+      return;
+    }
+    $('site-leaders').innerHTML = boards.map(function (b) {
+      var l = b.leaders[0], v = typeof l.value === 'number' && l.value % 1 ? l.value.toFixed(2) : l.value;
+      return '<article class="card card--accent leader"><div class="avatar">' + esc(A.crestText(l.name)) + '</div><div><div class="lbl">' + esc(b.label) + '</div><div class="big num">' + esc(v) + '</div><div class="muted">' + esc(l.name) + '</div></div></article>';
+    }).join('');
+  }
+
+  Promise.all([A.get('/api/sca/schedule/next'), A.get('/api/sca/record'), A.get('/api/sca/results?limit=5'), A.get('/api/sca/leaders?top=1')])
+    .then(function (r) {
+      nextMatch(r[0]); record(r[1]); results(r[2]); ticker(r[2], r[0]); leaders(r[3]);
+      var div = r[0].data && r[0].data.competition;
+      if (div) { $('sca-division').textContent = div.replace('SCA Clubs ', ''); $('hero-division').textContent = div.replace(/ - \d{4}$/, '').replace('SCA Clubs ', 'SCA '); $('season-eyebrow').textContent = div.replace(/^.* - /, 'Season '); }
+      var info = A.syncInfo({ sources: [].concat(r[1].meta.sources, r[0].meta.sources) });
+      $('site-sync').innerHTML = '<svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg> ' + esc(info.text);
+    })
+    .catch(function (e) {
+      $('site-sync').textContent = 'SCA data unavailable';
+      $('ticker').innerHTML = '<span>Results unavailable right now</span>';
+      $('nm-opp').textContent = 'Unavailable';
+      $('site-results').innerHTML = '<div class="card result"><p class="muted">Results are unavailable right now (' + esc(e.message) + ').</p></div>';
+    });
+})();
 </script>
 </body>
 </html>
