@@ -23,7 +23,8 @@ jobs:
           echo "=== tsconfig.json"; cat probe-default/tsconfig.json
           echo "=== files"; find probe-default -type f -not -path '*/node_modules/*' -not -path '*/.git/*' | sort
           echo "=== app layout"; find probe-default -path '*app/_layout.tsx' -exec cat {} \;
-          echo "=== tabs layout"; find probe-default -path '*(tabs)/_layout.tsx' -exec cat {} \;
+          for f in src/components/app-tabs.tsx src/components/app-tabs.web.tsx src/app/index.tsx src/app/explore.tsx src/constants/theme.ts src/hooks/use-theme.ts src/components/themed-text.tsx .gitignore; do
+            echo "=== $f"; cat "probe-default/$f"; done
       - name: Versions
         run: |
           for p in expo expo-router react react-native react-dom react-native-web typescript @types/react; do

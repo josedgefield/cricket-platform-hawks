@@ -18,6 +18,9 @@ logging:
     sg.hawkscc: DEBUG
 
 hawks:
+  cors:
+    # Expo web dev server (npx expo start --web)
+    allowed-origins: http://localhost:8081,http://127.0.0.1:8081
   dev:
     # Local-only login for trying the admin endpoints in Swagger UI.
     # The identity module (email one-time codes) replaces this.

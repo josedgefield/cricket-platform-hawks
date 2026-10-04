@@ -1,5 +1,7 @@
 package sg.hawkscc.platform.security;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +14,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Default deny. Public: stats reads, health, and API docs (docs are switched off outside dev).
@@ -27,6 +32,7 @@ class SecurityConfig {
         http
                 // Stateless JSON API: no session cookie, so no CSRF exposure.
                 .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/stats/**").permitAll()
@@ -36,6 +42,23 @@ class SecurityConfig {
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults());
         return http.build();
+    }
+
+    /**
+     * Browsers only let the web app call the API from origins listed in
+     * {@code hawks.cors.allowed-origins} (e.g. the Expo dev server). Native apps are unaffected.
+     */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${hawks.cors.allowed-origins:}") List<String> allowedOrigins) {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(allowedOrigins.stream().filter(o -> !o.isBlank()).toList());
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setMaxAge(3600L);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", config);
+        return source;
     }
 
     @Bean

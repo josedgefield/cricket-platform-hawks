@@ -214,6 +214,18 @@ class StatsApiIntegrationTest {
     }
 
     @Test
+    void browsersMayCallTheApiOnlyFromAllowedOrigins() {
+        var allowed = http.get().uri("/api/stats/sources").header("Origin", "http://localhost:8081")
+                .exchange((req, res) -> java.util.List.of(String.valueOf(res.getStatusCode().value()),
+                        String.valueOf(res.getHeaders().getFirst("Access-Control-Allow-Origin"))));
+        assertThat(allowed).containsExactly("200", "http://localhost:8081");
+
+        int blocked = http.get().uri("/api/stats/sources").header("Origin", "https://evil.example")
+                .exchange((req, res) -> res.getStatusCode().value());
+        assertThat(blocked).isEqualTo(403);
+    }
+
+    @Test
     void unknownCompetitionIs404() {
         assertThat(importCsv(UUID.randomUUID(), "batting", "Player,Runs\nX,1\n", true)).isEqualTo(404);
     }
