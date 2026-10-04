@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hawks Cricket Club</title>
+<meta name="description" content="Hawks Cricket Club, Singapore: fixtures, results, stats and how to join. Design prototype.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-nav">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="Hawks Cricket Club home">
+      <span class="brand-badge"><img src="hawks-logo.jpg" alt=""></span>
+      <span class="brand-name">HAWKS<small>Cricket Club · SG</small></span>
+    </a>
+    <nav class="site-links" id="site-links" aria-label="Main">
+      <a href="#fixtures">Fixtures</a>
+      <a href="#results">Results</a>
+      <a href="#stats">Stats</a>
+      <a href="#join">Join</a>
+      <a href="#app">The App</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="btn btn-gold btn-sm nav-cta" href="app-home.html">Player login</a>
+    <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="site-links" onclick="var n=document.getElementById('site-links');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)">
+      <svg class="i i-lg" aria-hidden="true"><use href="#i-menu"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="ticker" aria-label="Latest results">
+  <div class="ticker-track">
+    <span>SCA Div 2 <b>Hawks 184/6</b> bt Kallang Kings 162 · by 22 runs</span>
+    <span>BPL <b>Hawks 151/4</b> bt Raffles Ravens 148/9 · by 6 wkts</span>
+    <span>IAT30 <b>Tanjong Tigers 201/5</b> bt Hawks 188/8 · by 13 runs</span>
+    <span>Next · Sat 11 Oct · vs Marina Mariners · 09:30</span>
+    <span>SCA Div 2 <b>Hawks 184/6</b> bt Kallang Kings 162 · by 22 runs</span>
+    <span>BPL <b>Hawks 151/4</b> bt Raffles Ravens 148/9 · by 6 wkts</span>
+    <span>IAT30 <b>Tanjong Tigers 201/5</b> bt Hawks 188/8 · by 13 runs</span>
+    <span>Next · Sat 11 Oct · vs Marina Mariners · 09:30</span>
+  </div>
+</div>
+
+<main>
+<section class="hero">
+  <svg class="hero-tri" viewBox="0 0 520 450" aria-hidden="true"><polygon points="0,0 520,0 260,450" fill="none" stroke="#F5B700" stroke-width="18"/></svg>
+  <div class="hero-bg-word" aria-hidden="true">HAWKS</div>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow" style="color:var(--gold)">Singapore · Est. club cricket</span>
+      <h1>Fly high.<br>Play <em>hard.</em><br>Together.</h1>
+      <p class="lede">Hawks Cricket Club competes in the SCA Club League, BPL and IAT30. We're a club of mates who take our cricket seriously, and ourselves less so.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-gold" href="#join">Join the Hawks <svg class="i" aria-hidden="true"><use href="#i-arrowRight"/></svg></a>
+        <a class="btn btn-ghost-light" href="#fixtures">See fixtures</a>
+      </div>
+      <div class="hero-badges">
+        <span class="chip">SCA Club League</span><span class="chip">BPL</span><span class="chip">IAT30</span>
+      </div>
+    </div>
+
+    <aside class="match-hero" id="fixtures" aria-labelledby="nm-title">
+      <span class="eyebrow" id="nm-title">Next match · SCA Div 2 · Round 9</span>
+      <div class="versus">
+        <div><div class="crest crest-home"><img src="hawks-logo.jpg" alt=""></div><div class="team-name">Hawks CC</div></div>
+        <div class="vs">VS</div>
+        <div><div class="crest crest-away" aria-hidden="true">MM</div><div class="team-name">Marina Mariners</div></div>
+      </div>
+      <div class="countdown" id="countdown" aria-label="Time until first ball">
+        <div><b id="cd-d">06</b><small>Days</small></div>
+        <div><b id="cd-h">14</b><small>Hrs</small></div>
+        <div><b id="cd-m">22</b><small>Min</small></div>
+        <div><b id="cd-s">09</b><small>Sec</small></div>
+      </div>
+      <div class="match-meta">
+        <div><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg> Sat 11 Oct 2026 · 09:30 first ball</div>
+        <div><svg class="i" aria-hidden="true"><use href="#i-map"/></svg> Kallang Cricket Ground</div>
+        <div><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg> 40 overs · whites</div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="comp-h">
+  <div class="wrap">
+    <div class="section-head">
+      <div><span class="eyebrow">Season 2026</span><h2 id="comp-h">Where we play</h2></div>
+      <span class="synced"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg> Last synced 2 h ago</span>
+    </div>
+    <div class="comp-grid">
+      <article class="card comp-card">
+        <div class="comp-tag">SCA</div>
+        <div class="muted">Club League · Division 2</div>
+        <div class="rec"><div><b class="num">6</b><small>Won</small></div><div><b class="num">2</b><small>Lost</small></div><div><b class="num">3rd</b><small>Table</small></div></div>
+      </article>
+      <article class="card comp-card">
+        <div class="comp-tag">BPL</div>
+        <div class="muted">T20 tournament</div>
+        <div class="rec"><div><b class="num">4</b><small>Won</small></div><div><b class="num">1</b><small>Lost</small></div><div><b class="num">SF</b><small>Stage</small></div></div>
+      </article>
+      <article class="card comp-card">
+        <div class="comp-tag">IAT30</div>
+        <div class="muted">30-over tournament</div>
+        <div class="rec"><div><b class="num">2</b><small>Won</small></div><div><b class="num">2</b><small>Lost</small></div><div><b class="num">—</b><small>Group</small></div></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="results" aria-labelledby="res-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head">
+      <div><span class="eyebrow">Scorecards</span><h2 id="res-h">Latest results</h2></div>
+      <a class="btn btn-ghost btn-sm" href="app-matches.html">All results</a>
+    </div>
+    <div class="results">
+      <article class="card result">
+        <div class="result-top"><span class="chip chip-navy">SCA Div 2</span><span class="status status-ok"><svg class="i i-sm" aria-hidden="true"><use href="#i-trophy"/></svg> Won</span></div>
+        <div>
+          <div class="score-row won"><span class="team">Hawks CC</span><span class="score num">184/6<small>(40)</small></span></div>
+          <div class="score-row"><span class="team">Kallang Kings</span><span class="score num">162<small>(37.2)</small></span></div>
+        </div>
+        <div class="result-foot">Hawks won by 22 runs · PoM: Arjun M. 71 (58)</div>
+      </article>
+      <article class="card result">
+        <div class="result-top"><span class="chip chip-navy">BPL</span><span class="status status-ok"><svg class="i i-sm" aria-hidden="true"><use href="#i-trophy"/></svg> Won</span></div>
+        <div>
+          <div class="score-row"><span class="team">Raffles Ravens</span><span class="score num">148/9<small>(20)</small></span></div>
+          <div class="score-row won"><span class="team">Hawks CC</span><span class="score num">151/4<small>(18.3)</small></span></div>
+        </div>
+        <div class="result-foot">Hawks won by 6 wickets · PoM: Kiran P. 4/21</div>
+      </article>
+      <article class="card result">
+        <div class="result-top"><span class="chip chip-navy">IAT30</span><span class="status status-bad"><svg class="i i-sm" aria-hidden="true"><use href="#i-x"/></svg> Lost</span></div>
+        <div>
+          <div class="score-row won"><span class="team">Tanjong Tigers</span><span class="score num">201/5<small>(30)</small></span></div>
+          <div class="score-row"><span class="team">Hawks CC</span><span class="score num">188/8<small>(30)</small></span></div>
+        </div>
+        <div class="result-foot">Tigers won by 13 runs · Daniel T. 64 (41)</div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="stats" aria-labelledby="st-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head">
+      <div><span class="eyebrow">All competitions · 2026</span><h2 id="st-h">Season leaders</h2></div>
+      <span class="synced">Source: SCA export + BPL/IAT30 scorers</span>
+    </div>
+    <div class="leaders">
+      <article class="card card--accent leader"><div class="avatar">AM</div><div><div class="lbl">Most runs</div><div class="big num">512</div><div class="muted">Arjun M. · avg 46.5</div></div></article>
+      <article class="card card--accent leader"><div class="avatar">KP</div><div><div class="lbl">Most wickets</div><div class="big num">27</div><div class="muted">Kiran P. · econ 4.8</div></div></article>
+      <article class="card card--accent leader"><div class="avatar">DT</div><div><div class="lbl">Best strike rate</div><div class="big num">148.2</div><div class="muted">Daniel T. · min 100 balls</div></div></article>
+      <article class="card card--accent leader"><div class="avatar">SW</div><div><div class="lbl">Most dismissals</div><div class="big num">19</div><div class="muted">Sam W. · keeper</div></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="join" aria-labelledby="join-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="band">
+      <div class="join-grid">
+        <div>
+          <span class="eyebrow" style="color:var(--gold)">Recruiting for 2027</span>
+          <h2 id="join-h">Join the flock</h2>
+          <p>Batters, bowlers, keepers and all-rounders of every level are welcome. Weekly nets, league and tournament cricket, and a squad that turns up for each other.</p>
+          <div class="hero-ctas">
+            <a class="btn btn-gold" href="#contact">Register interest <svg class="i" aria-hidden="true"><use href="#i-arrowRight"/></svg></a>
+            <a class="btn btn-ghost-light" href="#app">How the club runs</a>
+          </div>
+        </div>
+        <ul class="perks">
+          <li><svg class="i" aria-hidden="true"><use href="#i-ball"/></svg><div><b>Competitive cricket</b><br><span style="color:#D6DAF2">SCA Club League plus BPL and IAT30 tournaments.</span></div></li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-target"/></svg><div><b>Weekly nets</b><br><span style="color:#D6DAF2">Structured sessions with turf and mat practice.</span></div></li>
+          <li><svg class="i" aria-hidden="true"><use href="#i-users"/></svg><div><b>A proper club</b><br><span style="color:#D6DAF2">Socials, a family day, and the annual awards night.</span></div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="app" aria-labelledby="app-h" style="padding-top:0">
+  <div class="wrap app-promo">
+    <div>
+      <span class="eyebrow" style="color:var(--gold-text)">Members' app · iOS · Android · Web</span>
+      <h2 id="app-h" style="font-size:clamp(28px,4vw,40px);font-weight:800;text-transform:uppercase;margin:6px 0 20px">Everything Hawks, in your pocket</h2>
+      <div class="feature-list">
+        <div class="feature"><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-wallet"/></svg></div><div><h3>Know what you owe</h3><p>An itemised balance, PayNow in two taps, and receipts once the treasurer confirms.</p></div></div>
+        <div class="feature"><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg></div><div><h3>Availability in one tap</h3><p>Captains see the squad at a glance, and selections arrive as a notification.</p></div></div>
+        <div class="feature"><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg></div><div><h3>Your stats, all comps</h3><p>SCA, BPL and IAT30 in one profile, always showing when the data was last synced.</p></div></div>
+        <div class="feature"><div class="ico"><svg class="i" aria-hidden="true"><use href="#i-megaphone"/></svg></div><div><h3>Notices that don't get buried</h3><p>Pinned club announcements with replies and reactions.</p></div></div>
+      </div>
+    </div>
+    <div>
+      <p class="eyebrow muted" style="margin-bottom:12px">Prototype screens</p>
+      <div class="screens">
+        <a class="screen-link" href="app-home.html"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg><b>Player home</b><small>Balance, next match, notices</small></a>
+        <a class="screen-link" href="app-money.html"><svg class="i" aria-hidden="true"><use href="#i-wallet"/></svg><b>Money</b><small>Charges, PayNow, claims</small></a>
+        <a class="screen-link" href="app-matches.html"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg><b>Matches &amp; stats</b><small>Fixtures, availability, charts</small></a>
+        <a class="screen-link" href="admin-reconcile.html"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg><b>Treasurer console</b><small>Claims &amp; bank matching</small></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="sp-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head"><div><span class="eyebrow">Thank you</span><h2 id="sp-h">Our sponsors</h2></div></div>
+    <div class="sponsors">
+      <div class="sponsor">Your logo</div><div class="sponsor">Your logo</div><div class="sponsor">Your logo</div><div class="sponsor">Your logo</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-foot" id="contact">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="index.html"><span class="brand-badge"><img src="hawks-logo.jpg" alt="Hawks Cricket Club logo"></span><span class="brand-name">HAWKS<small>Cricket Club · SG</small></span></a>
+        <p style="margin-top:16px;max-width:28em">Club cricket in Singapore since day one. Fly high, play hard, together.</p>
+      </div>
+      <div><h4>Club</h4><a href="#fixtures">Fixtures</a><a href="#results">Results</a><a href="#stats">Stats</a><a href="#join">Join</a></div>
+      <div><h4>Members</h4><a href="app-home.html">Player login</a><a href="admin-reconcile.html">Committee console</a><a href="#">Privacy notice</a></div>
+      <div><h4>Contact</h4><a href="#"><span style="display:inline-flex;gap:8px;align-items:center"><svg class="i i-sm" aria-hidden="true"><use href="#i-mail"/></svg> hello@hawks.example</span></a><a href="#">Instagram</a><a href="#">Facebook</a></div>
+    </div>
+    <div class="foot-note">© 2026 Hawks Cricket Club · Design prototype: all names, scores and figures are fictional.
+      <button class="btn btn-ghost-light btn-sm" style="margin-left:8px" onclick="hawksToggleTheme()"><svg class="i i-sm" aria-hidden="true"><use href="#i-moon"/></svg> Theme</button>
+    </div>
+  </div>
+</footer>
+
+<script src="icons.js"></script>
+<script>
+  // Countdown to a fictional fixture (Sat 11 Oct 2026, 09:30 SGT)
+  (function () {
+    var target = new Date('2026-10-11T09:30:00+08:00').getTime();
+    function pad(n) { return String(n).padStart(2, '0'); }
+    function tick() {
+      var d = Math.max(0, target - Date.now());
+      document.getElementById('cd-d').textContent = pad(Math.floor(d / 864e5));
+      document.getElementById('cd-h').textContent = pad(Math.floor(d / 36e5) % 24);
+      document.getElementById('cd-m').textContent = pad(Math.floor(d / 6e4) % 60);
+      document.getElementById('cd-s').textContent = pad(Math.floor(d / 1e3) % 60);
+    }
+    tick(); setInterval(tick, 1000);
+  })();
+</script>
+</body>
+</html>

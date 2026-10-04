@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hawks App — Money</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="proto-bar"><div class="wrap"><span>Prototype · Player app · Money</span><span><a href="index.html">Website</a> · <button class="btn-ghost-light btn btn-sm" style="min-height:32px" onclick="hawksToggleTheme()">Theme</button></span></div></div>
+<div class="proto-stage">
+<div class="phone">
+  <header class="app-header">
+    <h1>Money</h1>
+    <button class="icon-btn" aria-label="Fee policy"><svg class="i" aria-hidden="true"><use href="#i-file"/></svg></button>
+  </header>
+
+  <div class="app-scroll">
+    <section class="balance" aria-labelledby="bal-h">
+      <span class="eyebrow" id="bal-h">Outstanding balance</span>
+      <div class="amount num"><small>S$</small><span id="bal">145.00</span></div>
+      <span class="status" id="bal-status"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert"/></svg> 1 overdue</span>
+      <div class="balance-actions"><button class="btn btn-gold" id="open-pay"><svg class="i" aria-hidden="true"><use href="#i-qr"/></svg> Pay with PayNow</button></div>
+    </section>
+
+    <section class="block" aria-labelledby="oc-h">
+      <div class="block-head"><h2 id="oc-h">Open charges</h2></div>
+      <div class="card" style="padding:0 16px">
+        <div class="list-row">
+          <div class="grow"><div class="title">Match fee · vs Kallang Kings</div><div class="sub">Ref HWK-26-0042 · due 28 Sep</div></div>
+          <div class="stack-xs"><div class="amt">25.00</div><span class="status status-bad"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert"/></svg> Overdue</span></div>
+        </div>
+        <div class="list-row">
+          <div class="grow"><div class="title">BPL tournament entry share</div><div class="sub">Ref HWK-26-0051 · due 15 Oct</div></div>
+          <div class="stack-xs"><div class="amt">60.00</div><span class="status status-warn"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg> Due soon</span></div>
+        </div>
+        <div class="list-row">
+          <div class="grow"><div class="title">Club polo (L)</div><div class="sub">Ref HWK-26-0057 · due 31 Oct</div></div>
+          <div class="stack-xs"><div class="amt">60.00</div><span class="status status-info">Open</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="cl-h">
+      <div class="block-head"><h2 id="cl-h">Payment claims</h2></div>
+      <div class="card" style="padding:0 16px" id="claims">
+        <div class="list-row">
+          <div class="grow"><div class="title">PayNow · HWK-PAY-7Q2K</div><div class="sub">Sent 14 Sep · confirmed by treasurer 15 Sep</div></div>
+          <div class="stack-xs"><div class="amt">300.00</div><span class="status status-ok"><svg class="i i-sm" aria-hidden="true"><use href="#i-checkCircle"/></svg> Confirmed</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="stm-h">
+      <div class="block-head"><h2 id="stm-h">Statement</h2><a href="#">Export</a></div>
+      <div class="card" style="padding:8px 8px 0">
+        <table class="data">
+          <thead><tr><th>Date</th><th>Item</th><th class="n">S$</th><th class="n">Bal</th></tr></thead>
+          <tbody>
+            <tr><td>01 Sep</td><td>Season fee 2026</td><td class="n">300.00</td><td class="n">300.00</td></tr>
+            <tr><td>15 Sep</td><td>Payment · PayNow</td><td class="n" style="color:var(--color-success)">−300.00</td><td class="n">0.00</td></tr>
+            <tr><td>21 Sep</td><td>Match fee</td><td class="n">25.00</td><td class="n">25.00</td></tr>
+            <tr><td>01 Oct</td><td>BPL entry share</td><td class="n">60.00</td><td class="n">85.00</td></tr>
+            <tr><td>03 Oct</td><td>Club polo</td><td class="n">60.00</td><td class="n">145.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="sheet-backdrop" id="backdrop"></div>
+  <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="pay-h" aria-hidden="true">
+    <div class="grabber"></div>
+    <div id="pay-step">
+      <h2 id="pay-h" style="font-size:20px;text-align:center">Pay S$<span class="num">145.00</span></h2>
+      <p class="muted" style="text-align:center;font-size:14px;margin:0">Scan in your banking app, or screenshot it and upload it there</p>
+      <div class="qr-wrap">
+        <span class="qr-label">PAYNOW</span>
+        <svg id="qr" viewBox="0 0 29 29" width="200" height="200" shape-rendering="crispEdges" role="img" aria-label="Sample PayNow QR code, not payable"></svg>
+        <div class="qr-sample"><span>SAMPLE</span></div>
+      </div>
+      <dl class="kv">
+        <dt>Pay to</dt><dd>HAWKS CC (Treasurer)</dd><span></span>
+        <dt>Amount</dt><dd class="num" style="font-size:18px">S$145.00</dd><button class="copy" aria-label="Copy amount" onclick="hawksToast('Amount copied')"><svg class="i i-sm" aria-hidden="true"><use href="#i-copy"/></svg></button>
+        <dt>Reference</dt><dd class="num" style="font-size:18px">HWK-PAY-9F3T</dd><button class="copy" aria-label="Copy reference" onclick="hawksToast('Reference copied')"><svg class="i i-sm" aria-hidden="true"><use href="#i-copy"/></svg></button>
+      </dl>
+      <div class="callout" style="margin:16px 0">
+        <svg class="i" aria-hidden="true"><use href="#i-shield"/></svg>
+        <span>Check that your bank shows the recipient as <b>HAWKS CC</b> before you confirm. Your balance updates once the treasurer confirms the payment.</span>
+      </div>
+      <button class="btn btn-navy btn-block" id="claim"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg> I've paid</button>
+      <button class="btn btn-ghost btn-block" style="margin-top:8px" id="close-pay">Not now</button>
+    </div>
+    <div id="done-step" hidden style="text-align:center;padding:20px 0">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--color-warning-bg);color:var(--color-warning);display:grid;place-items:center;margin:0 auto 12px"><svg class="i i-lg" aria-hidden="true"><use href="#i-hourglass"/></svg></div>
+      <h2 style="font-size:20px">Claim sent</h2>
+      <p class="muted">We've told the treasurer. Your balance will update when they confirm the payment, usually within 48 hours.</p>
+      <button class="btn btn-ghost btn-block" style="margin-top:8px"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg> Attach screenshot (optional)</button>
+      <button class="btn btn-navy btn-block" style="margin-top:8px" id="done">Done</button>
+    </div>
+  </section>
+
+  <nav class="tabbar" aria-label="App">
+    <a href="app-home.html"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>Home</a>
+    <a href="app-matches.html"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>Matches</a>
+    <a href="app-matches.html#stats"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg>Stats</a>
+    <a href="app-money.html" aria-current="page"><svg class="i" aria-hidden="true"><use href="#i-wallet"/></svg>Money</a>
+    <a href="#"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg>More</a>
+  </nav>
+</div>
+</div>
+<script src="icons.js"></script>
+<script>
+  // Illustrative QR-like pattern ONLY (not a valid SGQR payload): finder patterns + seeded noise.
+  (function () {
+    var n = 29, svg = document.getElementById('qr'), seed = 7, out = '';
+    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    function finder(x, y) { return (x < 7 && y < 7) || (x >= n - 7 && y < 7) || (x < 7 && y >= n - 7); }
+    function fcell(x, y) { var fx = x >= n - 7 ? x - (n - 7) : x, fy = y >= n - 7 ? y - (n - 7) : y; var d = Math.max(Math.abs(fx - 3), Math.abs(fy - 3)); return d !== 2 && d <= 3; }
+    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
+      var on = finder(x, y) ? fcell(x, y) : (x === 7 || y === 7 || x === n - 8 || y === n - 8) && (finder(x, y - 1) || finder(x - 1, y)) ? false : rnd() > 0.52;
+      if (on) out += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="#0F1533"/>';
+    }
+    svg.innerHTML = out;
+  })();
+
+  var sheet = document.getElementById('sheet'), bd = document.getElementById('backdrop');
+  function open() { sheet.classList.add('open'); bd.classList.add('open'); sheet.setAttribute('aria-hidden', 'false'); document.getElementById('claim').focus(); }
+  function close() { sheet.classList.remove('open'); bd.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); document.getElementById('open-pay').focus(); }
+  document.getElementById('open-pay').onclick = open;
+  document.getElementById('close-pay').onclick = close;
+  bd.onclick = close;
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && sheet.classList.contains('open')) close(); });
+  document.getElementById('claim').onclick = function () {
+    document.getElementById('pay-step').hidden = true;
+    document.getElementById('done-step').hidden = false;
+    document.getElementById('claims').insertAdjacentHTML('afterbegin',
+      '<div class="list-row"><div class="grow"><div class="title">PayNow · HWK-PAY-9F3T</div><div class="sub">Sent just now · awaiting treasurer</div></div>' +
+      '<div class="stack-xs"><div class="amt">145.00</div><span class="status status-warn"><svg class="i i-sm" aria-hidden="true"><use href="#i-hourglass"/></svg> Pending</span></div></div>');
+    document.getElementById('bal-status').innerHTML = '<svg class="i i-sm" aria-hidden="true"><use href="#i-hourglass"/></svg> S$145.00 pending confirmation';
+  };
+  document.getElementById('done').onclick = function () {
+    close();
+    document.getElementById('pay-step').hidden = false;
+    document.getElementById('done-step').hidden = true;
+  };
+  if (location.hash === '#pay') setTimeout(open, 300);
+</script>
+</body>
+</html>

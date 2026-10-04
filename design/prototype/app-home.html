@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hawks App — Home</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="proto-bar"><div class="wrap"><span>Prototype · Player app · Home</span><span><a href="index.html">Website</a> · <button class="btn-ghost-light btn btn-sm" style="min-height:32px" onclick="hawksToggleTheme()">Theme</button></span></div></div>
+<div class="proto-stage">
+<div class="phone">
+  <header class="app-header">
+    <div style="display:flex;gap:10px;align-items:center">
+      <span class="mini-crest"><img src="hawks-logo.jpg" alt=""></span>
+      <div><p class="hello">Good morning</p><h1>Arjun</h1></div>
+    </div>
+    <button class="icon-btn" aria-label="Notifications, 2 unread"><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg><span class="dot"></span></button>
+  </header>
+
+  <div class="app-scroll">
+    <section class="balance" aria-labelledby="bal-h">
+      <span class="eyebrow" id="bal-h">You owe</span>
+      <div class="amount num"><small>S$</small>145.00</div>
+      <span class="status"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert"/></svg> 1 overdue · 2 open charges</span>
+      <div class="balance-actions">
+        <a class="btn btn-gold" href="app-money.html#pay"><svg class="i" aria-hidden="true"><use href="#i-qr"/></svg> Pay with PayNow</a>
+        <a class="btn btn-ghost-light" href="app-money.html">Statement</a>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="nm-h">
+      <div class="block-head"><h2 id="nm-h">Next match</h2><a href="app-matches.html">All</a></div>
+      <article class="card next-match">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <span class="chip chip-navy">SCA Div 2 · R9</span>
+          <span class="status status-info"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg> In 6 days</span>
+        </div>
+        <div class="teams">
+          <div class="t"><span class="mini-crest"><img src="hawks-logo.jpg" alt=""></span>Hawks</div>
+          <span class="vs" style="font-size:16px">VS</span>
+          <div class="t">Mariners<span class="mini-crest away" aria-hidden="true">MM</span></div>
+        </div>
+        <div class="meta-row">
+          <span><svg class="i i-sm" aria-hidden="true"><use href="#i-calendar"/></svg> Sat 11 Oct · 09:30</span>
+          <span><svg class="i i-sm" aria-hidden="true"><use href="#i-map"/></svg> Kallang Cricket Ground</span>
+        </div>
+        <div class="seg" role="group" aria-label="Your availability">
+          <button data-v="yes" aria-pressed="true"><svg class="i i-sm" aria-hidden="true"><use href="#i-check"/></svg> Available</button>
+          <button data-v="maybe" aria-pressed="false"><svg class="i i-sm" aria-hidden="true"><use href="#i-help"/></svg> Maybe</button>
+          <button data-v="no" aria-pressed="false"><svg class="i i-sm" aria-hidden="true"><use href="#i-x"/></svg> Out</button>
+        </div>
+        <p class="muted" style="font-size:13px;margin:10px 0 0">11 of 16 squad responded · selection posted Thu</p>
+      </article>
+    </section>
+
+    <section class="block" aria-labelledby="an-h">
+      <div class="block-head"><h2 id="an-h">Club notices</h2><a href="#">All</a></div>
+      <div class="card" style="padding:4px 16px">
+        <article class="notice">
+          <div class="ico"><svg class="i" aria-hidden="true"><use href="#i-megaphone"/></svg></div>
+          <div>
+            <span class="pin"><svg class="i i-sm" aria-hidden="true"><use href="#i-pin"/></svg> Pinned</span>
+            <h3>2027 season fees are now live</h3>
+            <p>Season fee S$300, payable by 31 Jan. Student rate available, so speak to the treasurer.</p>
+            <div class="reacts"><button class="react" aria-label="Thumbs up, 12">👍 12</button><button class="react" aria-label="Question, 2">❓ 2</button><button class="react">Reply</button></div>
+          </div>
+        </article>
+        <article class="notice">
+          <div class="ico"><svg class="i" aria-hidden="true"><use href="#i-target"/></svg></div>
+          <div><h3>Nets moved to Wed 7.30pm</h3><p>Turf nets this week only. Bring your own balls.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="lr-h">
+      <div class="block-head"><h2 id="lr-h">Last result</h2></div>
+      <article class="card">
+        <div class="score-row won"><span class="team">Hawks CC</span><span class="score num">184/6<small>(40)</small></span></div>
+        <div class="score-row"><span class="team">Kallang Kings</span><span class="score num">162<small>(37.2)</small></span></div>
+        <p class="muted" style="font-size:14px;margin:8px 0 0">Won by 22 runs · You: 71 (58), 1/24</p>
+      </article>
+    </section>
+  </div>
+
+  <nav class="tabbar" aria-label="App">
+    <a href="app-home.html" aria-current="page"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>Home</a>
+    <a href="app-matches.html"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>Matches</a>
+    <a href="app-matches.html#stats"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg>Stats</a>
+    <a href="app-money.html"><svg class="i" aria-hidden="true"><use href="#i-wallet"/></svg>Money</a>
+    <a href="#"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg>More</a>
+  </nav>
+</div>
+</div>
+<script src="icons.js"></script>
+<script>
+  document.querySelectorAll('.seg').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      g.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+      hawksToast('Availability saved: ' + b.textContent.trim());
+    });
+  });
+</script>
+</body>
+</html>
