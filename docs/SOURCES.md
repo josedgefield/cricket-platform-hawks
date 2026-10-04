@@ -18,3 +18,5 @@ External references used in planning. Figures marked *verify* must be checked ag
 | Expo | docs.expo.dev (Router, Notifications, EAS) | |
 | OWASP ASVS | owasp.org/www-project-application-security-verification-standard | Security baseline |
 | WCAG 2.2 | w3.org/TR/WCAG22 | Accessibility baseline |
+| CricHeroes: Hawks CC | [members](https://cricheroes.com/team-profile/10178708/hawks-cc/members), [matches](https://cricheroes.com/team-profile/10178708/hawks-cc/matches), [leaderboard](https://cricheroes.com/team-profile/10178708/hawks-cc/leaderboard) | Provided by the club. Returned Cloudflare 403 to automated requests on 2026-10-04 |
+| CricHeroes: BPL 2025 | [past matches](https://cricheroes.com/tournament/1500354/bpl-2025/matches/past-matches), [points table](https://cricheroes.com/tournament/1500354/bpl-2025/point-table) | Provided by the club. Same 403. See `docs/06` |
