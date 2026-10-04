@@ -7,19 +7,16 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="proto-bar"><div class="wrap"><span>Prototype · Player app · Matches &amp; Stats</span><span><a href="index.html">Website</a> · <button class="btn-ghost-light btn btn-sm" style="min-height:32px" onclick="hawksToggleTheme()">Theme</button></span></div></div>
+<div class="proto-bar"><div class="wrap"><span>Prototype · Player app · Matches</span><span><a href="index.html">Website</a> · <button class="btn-ghost-light btn btn-sm" style="min-height:32px" onclick="hawksToggleTheme()">Theme</button></span></div></div>
 <div class="proto-stage">
 <div class="phone">
-  <header class="app-header" style="flex-direction:column;align-items:stretch">
-    <h1 id="title">Matches</h1>
-    <div class="tabs" role="tablist" aria-label="Matches and stats">
-      <button role="tab" id="t-fx" aria-selected="true" aria-controls="p-fx">Fixtures</button>
-      <button role="tab" id="t-st" aria-selected="false" aria-controls="p-st">My stats</button>
-    </div>
+  <header class="app-header">
+    <h1>Matches</h1>
+    <a class="btn btn-ghost btn-sm" href="app-stats.html"><svg class="i i-sm" aria-hidden="true"><use href="#i-chart"/></svg> Stats</a>
   </header>
 
   <div class="app-scroll">
-    <section id="p-fx" role="tabpanel" aria-labelledby="t-fx">
+    <section id="p-fx">
       <div class="block-head" style="margin-top:8px"><h2>Upcoming</h2><span class="synced"><svg class="i i-sm" aria-hidden="true"><use href="#i-clock"/></svg> Synced 2 h ago</span></div>
 
       <article class="card next-match" style="margin-bottom:12px">
@@ -48,47 +45,12 @@
       </div>
     </section>
 
-    <section id="p-st" role="tabpanel" aria-labelledby="t-st" hidden>
-      <div class="block-head" style="margin-top:8px"><h2>Season 2026</h2><span class="synced">SCA + BPL + IAT30</span></div>
-      <div class="stat-tiles">
-        <div class="stat-tile"><b>512</b><small>Runs</small></div>
-        <div class="stat-tile"><b>46.5</b><small>Avg</small></div>
-        <div class="stat-tile"><b>131.6</b><small>SR</small></div>
-        <div class="stat-tile"><b>9</b><small>Wkts</small></div>
-        <div class="stat-tile"><b>5.6</b><small>Econ</small></div>
-        <div class="stat-tile"><b>—</b><small>Catches</small></div>
-      </div>
-      <p class="muted" style="font-size:13px;margin:8px 0 0">"—" means the source didn't record the value. We never estimate it.</p>
-
-      <div class="block-head" style="margin-top:20px"><h2>Runs by match</h2></div>
-      <figure class="card" style="margin:0">
-        <svg class="chart" viewBox="0 0 320 170" role="img" aria-labelledby="ch-t ch-d">
-          <title id="ch-t">Runs in the last 8 innings</title>
-          <desc id="ch-d">12, 45, 8, 71, 33, 0, 58, 71. The highest score, 71, is highlighted.</desc>
-          <g class="grid"><line x1="28" x2="316" y1="20" y2="20"/><line x1="28" x2="316" y1="70" y2="70"/><line x1="28" x2="316" y1="120" y2="120"/></g>
-          <g class="axis"><text x="2" y="24">75</text><text x="2" y="74">50</text><text x="2" y="124">25</text><text x="10" y="150">0</text></g>
-          <g id="bars"></g>
-        </svg>
-        <figcaption class="muted" style="font-size:13px">Gold = season best · data table below</figcaption>
-      </figure>
-      <div class="card" style="padding:8px 8px 0;margin-top:12px">
-        <table class="data">
-          <thead><tr><th>Match</th><th class="n">R</th><th class="n">B</th><th class="n">SR</th></tr></thead>
-          <tbody>
-            <tr><td>v Kallang Kings</td><td class="n">71</td><td class="n">58</td><td class="n">122.4</td></tr>
-            <tr><td>v Raffles Ravens</td><td class="n">58</td><td class="n">39</td><td class="n">148.7</td></tr>
-            <tr><td>v Tanjong Tigers</td><td class="n">0</td><td class="n">2</td><td class="n">0.0</td></tr>
-            <tr><td>v Marina Mariners</td><td class="n">33</td><td class="n">—</td><td class="n">—</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
   </div>
 
   <nav class="tabbar" aria-label="App">
     <a href="app-home.html"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>Home</a>
-    <a href="app-matches.html" id="nav-m" aria-current="page"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>Matches</a>
-    <a href="app-matches.html#stats" id="nav-s"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg>Stats</a>
+    <a href="app-matches.html" aria-current="page"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>Matches</a>
+    <a href="app-stats.html"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg>Stats</a>
     <a href="app-money.html"><svg class="i" aria-hidden="true"><use href="#i-wallet"/></svg>Money</a>
     <a href="#"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg>More</a>
   </nav>
@@ -96,30 +58,6 @@
 </div>
 <script src="icons.js"></script>
 <script>
-  // bars
-  (function () {
-    var runs = [12, 45, 8, 71, 33, 0, 58, 71], g = document.getElementById('bars'), w = 26, gap = 10, x0 = 36, base = 145, scale = 125 / 75, html = '';
-    var max = Math.max.apply(null, runs);
-    runs.forEach(function (r, i) {
-      var h = Math.max(1, r * scale), x = x0 + i * (w + gap);
-      html += '<rect class="bar' + (r === max ? ' hi' : '') + '" x="' + x + '" y="' + (base - h) + '" width="' + w + '" height="' + h + '" rx="4"/>';
-      html += '<text class="val" x="' + (x + w / 2) + '" y="' + (base - h - 5) + '" text-anchor="middle">' + r + '</text>';
-    });
-    g.innerHTML = html;
-  })();
-  // tabs
-  function show(stats) {
-    document.getElementById('p-fx').hidden = stats; document.getElementById('p-st').hidden = !stats;
-    document.getElementById('t-fx').setAttribute('aria-selected', !stats); document.getElementById('t-st').setAttribute('aria-selected', stats);
-    document.getElementById('title').textContent = stats ? 'Stats' : 'Matches';
-    var m = document.getElementById('nav-m'), s = document.getElementById('nav-s');
-    if (stats) { s.setAttribute('aria-current', 'page'); m.removeAttribute('aria-current'); } else { m.setAttribute('aria-current', 'page'); s.removeAttribute('aria-current'); }
-  }
-  document.getElementById('t-fx').onclick = function () { show(false); };
-  document.getElementById('t-st').onclick = function () { show(true); };
-  document.getElementById('nav-s').onclick = function (e) { e.preventDefault(); show(true); };
-  document.getElementById('nav-m').onclick = function (e) { e.preventDefault(); show(false); };
-  if (location.hash === '#stats') show(true);
   document.querySelectorAll('.seg').forEach(function (g) {
     g.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;

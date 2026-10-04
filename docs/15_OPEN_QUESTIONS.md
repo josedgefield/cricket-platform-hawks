@@ -12,6 +12,7 @@ Status key: ❓ open · ✅ answered
 | A5 | Budget | ✅ Under S$50/month |
 | A6 | Users in first season | ✅ Fewer than 50 |
 | A7 | Brand assets | ✅ Use estimates from the logo (navy + white, Montserrat-like) |
+| A8 | SCA access method | ✅ CSV export on the Hawks team pages (team 2291, club 7683); scheduled polite sync; Spring Boot backend |
 
 ## Open — blocking a gate
 | # | Question | Blocks | Why it matters |
@@ -19,7 +20,7 @@ Status key: ❓ open · ✅ answered
 | Q1 ❓ | Please share a **masked sample of the Excel workbook** (real headers, 5–10 rows per sheet) | Phase 1 import | Column mapping, opening balances |
 | Q2 ❓ | **Fee structure:** season fee, match fees, nets, kit, tournament entry? Amounts, due dates, late fees, discounts (students)? | Phase 1 | Fee schedules + reminders |
 | Q3 ❓ | **Who receives money?** Treasurer's personal PayNow, or a dedicated account? Which bank? | Phase 1 | PayNow proxy, bank CSV parser |
-| Q4 ❓ | **SCA data:** does the club have a portal login? Which exports are available (fixtures, scorecards, player stats)? | Phase 3 | Adapter design |
+| Q4 ❓ | **SCA data:** method confirmed (A8). Still open: allow `scores.cricketsingapore.com` in the cloud environment's network settings so the live export format can be verified | Phase 3 | Header mapping verification |
 | Q5 ❓ | **BPL and IAT30:** who runs them, and where do fixtures and stats live? | Phase 3 | Adapter design |
 | Q6 ❓ | **Role holders:** treasurer, captain(s), stats admin, comms admin, club admins (≥ 2 for the two-person rule) | Phase 0 | Seeding roles |
 

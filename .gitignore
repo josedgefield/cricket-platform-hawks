@@ -36,3 +36,9 @@ __pycache__/
 .DS_Store
 supabase/.branches
 supabase/.temp
+
+# --- Java / Gradle (apps/api) ---
+.gradle/
+apps/api/build/
+apps/api/data/
+*.class

@@ -1,0 +1,54 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: hawks-api
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+sca:
+  # Scheduled sync of the Hawks team pages on the SCA (CricClubs-hosted) site.
+  enabled: ${SCA_SYNC_ENABLED:true}
+  base-url: https://scores.cricketsingapore.com/SingaporeCricketAssoc
+  team-id: 2291
+  club-id: 7683
+  # Word that identifies Hawks in result text ("Hawks won by 22 runs"). Verify against the real export.
+  team-name-keyword: hawks
+  # Every 6 hours, at minute 17, Singapore time. Politeness: one request at a time.
+  sync-cron: "0 17 */6 * * *"
+  sync-zone: Asia/Singapore
+  sync-on-startup: ${SCA_SYNC_ON_STARTUP:true}
+  user-agent: "HawksCC-StatsSync/0.1 (+https://github.com/josedgefield/cricket-platform-hawks)"
+  min-delay-between-requests: 3s
+  connect-timeout: 10s
+  request-timeout: 20s
+  max-attempts: 3
+  initial-backoff: 2s
+  respect-robots-txt: true
+  # If the page's CSV button is generated client-side (no downloadable URL), read the same
+  # table the button exports. Set to false to accept only a real CSV download.
+  allow-html-table-fallback: true
+  # CricClubs-style dates are usually month/day/year. Verify against a real export.
+  date-order: MDY
+  stale-after: 7d
+  storage-dir: ${SCA_STORAGE_DIR:./data/sca}
+  # Required for POST /api/sca/sync and /api/sca/import/*. Unset = those endpoints are disabled.
+  admin-key: ${SCA_ADMIN_KEY:}
+  cors-allowed-origins: ${SCA_CORS_ORIGINS:http://localhost:8000,http://127.0.0.1:8000}
+  leaders:
+    min-balls-for-strike-rate: 60
+    min-innings-for-average: 3
+    min-balls-for-economy: 60

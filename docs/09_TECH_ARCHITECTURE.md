@@ -16,6 +16,11 @@
 | Errors | Sentry (Expo + Next.js + Edge) with PII scrubbing | |
 | CI/CD | GitHub Actions; EAS Build/Submit; Vercel for admin | |
 
+**Club decision (2026-10-04):** the SCA stats ingestion and query API is a **Spring Boot (Java 21)** service in `apps/api`, chosen by the club.
+- It sits alongside the TypeScript apps and exposes REST/JSON with OpenAPI at `/v3/api-docs`, from which TS types can be generated.
+- Ledger and auth logic stay in Postgres/Supabase as planned.
+- The service's file-based snapshot store moves to Postgres `source_records`/`sync_runs` when the database lands.
+
 **Rejected or deferred:**
 - **Firebase/Firestore:** a document store makes ledger invariants and relational reporting harder.
 - **A custom Node API server:** more to operate; Supabase plus Edge Functions covers it.
@@ -26,6 +31,7 @@
 ```
 apps/mobile        Expo app (iOS/Android/web)
 apps/admin         Next.js admin console
+apps/api           Spring Boot (Java 21): SCA CSV sync + stats query API (ScaStatsController)
 packages/domain    pure TS: money, ledger, allocation, paynow SGQR, stats, zod schemas
 packages/db        generated Supabase types + query helpers
 packages/ui        tokens → tailwind preset (+ shared RN primitives)

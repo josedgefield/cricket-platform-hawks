@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hawks App — Stats</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="proto-bar"><div class="wrap"><span>Prototype · Player app · Stats (live from SCA)</span><span><a href="index.html">Website</a> · <button class="btn-ghost-light btn btn-sm" style="min-height:32px" onclick="hawksToggleTheme()">Theme</button></span></div></div>
+<div class="proto-stage">
+<div class="phone">
+  <header class="app-header">
+    <div>
+      <h1>Stats</h1>
+      <p class="hello" id="sync-line" aria-live="polite">Loading SCA data…</p>
+    </div>
+    <button class="icon-btn" id="refresh" aria-label="Reload stats"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg></button>
+  </header>
+
+  <div class="app-scroll" id="content">
+    <div id="banner"></div>
+
+    <section class="block" aria-labelledby="rec-h" style="margin-top:4px">
+      <div class="block-head"><h2 id="rec-h">Season record</h2></div>
+      <div class="card record-card" id="record"><div class="skeleton" style="height:64px"></div></div>
+    </section>
+
+    <section class="block" aria-labelledby="ld-h">
+      <div class="block-head"><h2 id="ld-h">Season leaders</h2></div>
+      <div class="leader-grid" id="leaders">
+        <div class="skeleton" style="height:120px"></div><div class="skeleton" style="height:120px"></div>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="up-h">
+      <div class="block-head"><h2 id="up-h">Upcoming</h2></div>
+      <div class="card" style="padding:0 16px" id="upcoming"><div class="skeleton" style="height:56px;margin:14px 0"></div></div>
+    </section>
+
+    <section class="block" aria-labelledby="res-h">
+      <div class="block-head"><h2 id="res-h">Results</h2></div>
+      <div id="results"><div class="skeleton" style="height:96px"></div></div>
+    </section>
+
+    <section class="block" aria-labelledby="tbl-h">
+      <div class="block-head"><h2 id="tbl-h">Full stats</h2></div>
+      <div class="tabs" role="tablist" aria-label="Stat type">
+        <button role="tab" aria-selected="true" data-kind="batting">Batting</button>
+        <button role="tab" aria-selected="false" data-kind="bowling">Bowling</button>
+        <button role="tab" aria-selected="false" data-kind="fielding">Fielding</button>
+      </div>
+      <label class="sort-row">Sort by
+        <select id="sort" class="select"></select>
+      </label>
+      <div class="card table-scroll" id="table" role="tabpanel"><div class="skeleton" style="height:140px"></div></div>
+    </section>
+
+    <p class="muted source-note" id="source-note">Source: Singapore Cricket Association (scores.cricketsingapore.com) team pages, via each page's CSV export. "—" means the source didn't record a value; we never estimate it.</p>
+  </div>
+
+  <nav class="tabbar" aria-label="App">
+    <a href="app-home.html"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>Home</a>
+    <a href="app-matches.html"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>Matches</a>
+    <a href="app-stats.html" aria-current="page"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg>Stats</a>
+    <a href="app-money.html"><svg class="i" aria-hidden="true"><use href="#i-wallet"/></svg>Money</a>
+    <a href="#"><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg>More</a>
+  </nav>
+</div>
+</div>
+<script src="icons.js"></script>
+<script src="sca-api.js"></script>
+<script>
+(function () {
+  var A = HawksApi, esc = A.esc, val = A.val;
+  var SORTS = {
+    batting: [['runs', 'Runs'], ['average', 'Average'], ['strikerate', 'Strike rate'], ['sixes', 'Sixes'], ['name', 'Name']],
+    bowling: [['wickets', 'Wickets'], ['economy', 'Economy'], ['average', 'Average'], ['strikerate', 'Strike rate'], ['name', 'Name']],
+    fielding: [['catches', 'Catches'], ['dismissals', 'Dismissals'], ['stumpings', 'Stumpings'], ['runouts', 'Run outs'], ['name', 'Name']]
+  };
+  var kind = 'batting';
+  var $ = function (id) { return document.getElementById(id); };
+
+  function errorBox(err) {
+    return '<div class="card state-card" role="alert"><svg class="i i-lg" aria-hidden="true"><use href="#i-alert"/></svg>' +
+      '<div><h3>Can\'t reach the Hawks stats service</h3><p class="muted">Tried <code>' + esc(A.base()) + '</code> (' + esc(err.message || err) + '). ' +
+      'Start the API (<code>apps/api</code>) or open this page with <code>?api=https://your-api</code>.</p>' +
+      '<button class="btn btn-navy btn-sm" onclick="location.reload()">Try again</button></div></div>';
+  }
+  function empty(msg) {
+    return '<div class="empty-note"><svg class="i" aria-hidden="true"><use href="#i-hourglass"/></svg><span>' + esc(msg) + '</span></div>';
+  }
+  function num(v, d) { return typeof v === 'number' ? (d != null ? v.toFixed(d) : String(v)) : val(v); }
+
+  // ---------- record
+  function renderRecord(r) {
+    var d = r.data;
+    if (!d || !d.played) { $('record').innerHTML = empty('No results synced yet.'); return; }
+    var form = (d.form || []).map(function (f) {
+      var cls = f === 'W' ? 'status-ok' : f === 'L' ? 'status-bad' : 'status-info';
+      var label = { W: 'Won', L: 'Lost', T: 'Tied', NR: 'No result', A: 'Abandoned', '?': 'Result unclear' }[f] || f;
+      return '<span class="status ' + cls + ' form-pill" title="' + label + '"><span aria-hidden="true">' + esc(f) + '</span><span class="sr-only">' + label + '</span></span>';
+    }).join('');
+    $('record').innerHTML =
+      '<div class="record-row">' +
+      '<div><b class="num">' + d.won + '</b><small>Won</small></div>' +
+      '<div><b class="num">' + d.lost + '</b><small>Lost</small></div>' +
+      '<div><b class="num">' + (d.tied + d.noResult + d.abandoned) + '</b><small>T / NR / Ab</small></div>' +
+      '<div><b class="num">' + d.played + '</b><small>Played</small></div></div>' +
+      '<div class="form-row"><span class="muted">Last ' + (d.form || []).length + '</span>' + form + '</div>' +
+      (d.undetermined ? '<p class="muted" style="font-size:13px;margin:8px 0 0">' + d.undetermined + ' result(s) could not be read as a win or loss; see Results.</p>' : '');
+  }
+
+  // ---------- leaders
+  var BOARD_ORDER = ['mostRuns', 'mostWickets', 'bestBattingAverage', 'bestEconomy', 'bestStrikeRate', 'mostCatches', 'mostDismissals'];
+  var DECIMALS = { bestBattingAverage: 2, bestStrikeRate: 2, bestEconomy: 2 };
+  function renderLeaders(r) {
+    var boards = (r.data || []).filter(function (b) { return b.leaders && b.leaders.length; });
+    if (!boards.length) { $('leaders').innerHTML = empty('No batting, bowling or fielding stats synced yet.'); return; }
+    boards.sort(function (a, b) { return BOARD_ORDER.indexOf(a.key) - BOARD_ORDER.indexOf(b.key); });
+    $('leaders').innerHTML = boards.map(function (b) {
+      var top = b.leaders[0], rest = b.leaders.slice(1);
+      var initials = (top.name || '?').split(/\s+/).map(function (p) { return p[0]; }).join('').slice(0, 2).toUpperCase();
+      return '<article class="card card--accent leader-card">' +
+        '<div class="lbl">' + esc(b.label) + '</div>' +
+        '<div class="leader-top"><div class="avatar avatar-sm" aria-hidden="true">' + esc(initials) + '</div>' +
+        '<div><div class="big num">' + num(top.value, DECIMALS[b.key]) + '</div><div class="leader-name">' + esc(top.name) + '</div></div></div>' +
+        '<div class="muted leader-detail">' + esc(top.detail || '') + '</div>' +
+        (rest.length ? '<ol class="runners">' + rest.map(function (l) {
+          return '<li><span>' + esc(l.name) + '</span><b class="num">' + num(l.value, DECIMALS[b.key]) + '</b></li>';
+        }).join('') + '</ol>' : '') +
+        (b.qualification ? '<div class="qual">' + esc(b.qualification) + '</div>' : '') +
+        '</article>';
+    }).join('');
+  }
+
+  // ---------- fixtures & results
+  function teamsLine(a, b) { return esc(a || 'TBC') + ' <span class="muted">v</span> ' + esc(b || 'TBC'); }
+  function niceDate(iso, text) {
+    if (!iso) return esc(text || 'Date TBC');
+    var d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('en-SG', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+  function renderUpcoming(r) {
+    var rows = r.data || [];
+    if (!rows.length) { $('upcoming').innerHTML = empty('No upcoming matches in the SCA schedule.'); return; }
+    $('upcoming').innerHTML = rows.map(function (f) {
+      return '<div class="list-row"><div class="date-badge"><b class="num">' + (f.date ? new Date(f.date + 'T00:00:00').getDate() : '?') + '</b><small>' +
+        (f.date ? new Date(f.date + 'T00:00:00').toLocaleDateString('en-SG', { month: 'short' }) : 'TBC') + '</small></div>' +
+        '<div class="grow"><div class="title">' + teamsLine(f.teamOne, f.teamTwo) + '</div>' +
+        '<div class="sub">' + [niceDate(f.date, f.dateText), esc(f.time), esc(f.venue), esc(f.competition)].filter(Boolean).join(' · ') + '</div></div></div>';
+    }).join('');
+  }
+  function renderResults(r) {
+    var rows = r.data || [];
+    if (!rows.length) { $('results').innerHTML = '<div class="card">' + empty('No results synced yet.') + '</div>'; return; }
+    var chip = { WON: ['status-ok', 'Won'], LOST: ['status-bad', 'Lost'], TIED: ['status-info', 'Tied'], NO_RESULT: ['status-info', 'No result'], ABANDONED: ['status-info', 'Abandoned'] };
+    $('results').innerHTML = rows.map(function (m) {
+      var c = chip[m.outcome];
+      return '<article class="card result" style="margin-bottom:10px">' +
+        '<div class="result-top"><span class="chip chip-navy">' + esc(m.competition || 'SCA') + '</span>' +
+        (c ? '<span class="status ' + c[0] + '">' + c[1] + '</span>' : '') + '</div>' +
+        '<div><div class="score-row"><span class="team">' + esc(m.teamOne || '—') + '</span><span class="score num">' + val(m.teamOneScore) + '</span></div>' +
+        '<div class="score-row"><span class="team">' + esc(m.teamTwo || '—') + '</span><span class="score num">' + val(m.teamTwoScore) + '</span></div></div>' +
+        '<div class="result-foot">' + [niceDate(m.date, m.dateText), esc(m.result), esc(m.venue)].filter(Boolean).join(' · ') + '</div></article>';
+    }).join('');
+  }
+
+  // ---------- tables
+  var COLS = {
+    batting: [['name', 'Player'], ['matches', 'M', 1], ['innings', 'Inn', 1], ['notOuts', 'NO', 1], ['runs', 'Runs', 1], ['balls', 'B', 1], ['highestScore', 'HS', 1], ['average', 'Avg', 1, 2], ['strikeRate', 'SR', 1, 2], ['fifties', '50', 1], ['hundreds', '100', 1], ['fours', '4s', 1], ['sixes', '6s', 1]],
+    bowling: [['name', 'Player'], ['matches', 'M', 1], ['overs', 'O', 1], ['maidens', 'Md', 1], ['runsConceded', 'R', 1], ['wickets', 'W', 1], ['bestBowling', 'Best', 1], ['average', 'Avg', 1, 2], ['economy', 'Econ', 1, 2], ['strikeRate', 'SR', 1, 2], ['wides', 'Wd', 1], ['noBalls', 'Nb', 1]],
+    fielding: [['name', 'Player'], ['matches', 'M', 1], ['catches', 'Ct', 1], ['wicketKeeperCatches', 'WK Ct', 1], ['stumpings', 'St', 1], ['runOuts', 'RO', 1], ['totalDismissals', 'Total', 1]]
+  };
+  function setSorts() {
+    $('sort').innerHTML = SORTS[kind].map(function (s) { return '<option value="' + s[0] + '">' + s[1] + '</option>'; }).join('');
+  }
+  function loadTable() {
+    $('table').setAttribute('aria-busy', 'true');
+    A.get('/api/sca/' + kind + '?sort=' + encodeURIComponent($('sort').value)).then(function (r) {
+      var rows = r.data || [];
+      // Hide columns the source didn't provide for anyone.
+      var cols = COLS[kind].filter(function (c, i) { return i === 0 || rows.some(function (row) { return row[c[0]] != null; }); });
+      $('table').innerHTML = rows.length ? '<table class="data stats-table"><caption class="sr-only">' + kind + ' stats</caption><thead><tr>' +
+        cols.map(function (c) { return '<th scope="col"' + (c[2] ? ' class="n"' : '') + '>' + c[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        rows.map(function (row) {
+          return '<tr>' + cols.map(function (c, i) {
+            var v = row[c[0]];
+            return i === 0 ? '<th scope="row">' + esc(v) + '</th>' : '<td class="n">' + num(v, c[3]) + '</td>';
+          }).join('') + '</tr>';
+        }).join('') + '</tbody></table>' : empty('No ' + kind + ' stats synced yet.');
+      $('table').removeAttribute('aria-busy');
+    }).catch(function (e) { $('table').innerHTML = empty('Could not load ' + kind + ' stats: ' + e.message); });
+  }
+  document.querySelectorAll('.tabs [data-kind]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      kind = b.dataset.kind;
+      document.querySelectorAll('.tabs [data-kind]').forEach(function (x) { x.setAttribute('aria-selected', x === b); });
+      setSorts(); loadTable();
+    });
+  });
+  $('sort').addEventListener('change', loadTable);
+
+  // ---------- load everything
+  function loadAll() {
+    $('sync-line').textContent = 'Loading SCA data…';
+    Promise.all([
+      A.get('/api/sca/record'), A.get('/api/sca/leaders?top=3'), A.get('/api/sca/schedule?limit=5'), A.get('/api/sca/results?limit=5')
+    ]).then(function (r) {
+      renderRecord(r[0]); renderLeaders(r[1]); renderUpcoming(r[2]); renderResults(r[3]);
+      var info = A.syncInfo({ sources: [].concat(r[0].meta.sources, r[1].meta.sources, r[2].meta.sources) });
+      $('sync-line').textContent = info.text;
+      var notes = [];
+      if (!info.synced) notes.push('The first sync from the SCA site hasn\'t completed yet.');
+      else if (info.stale) notes.push('Some data is more than a week old.');
+      if (info.failed.length) notes.push('Last sync failed for ' + info.failed.map(function (s) { return s.dataset.toLowerCase(); }).join(', ') + ' — showing the last good data.');
+      $('banner').innerHTML = notes.length ? '<div class="callout warn-callout" role="status"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span>' + esc(notes.join(' ')) + '</span></div>' : '';
+      if (info.url) $('source-note').innerHTML = 'Source: <a href="' + esc(info.url) + '" rel="noopener" target="_blank">Singapore Cricket Association team pages</a>, via each page\'s CSV export. "—" means the source didn\'t record a value; we never estimate it.';
+    }).catch(function (e) {
+      $('sync-line').textContent = 'Offline';
+      $('banner').innerHTML = errorBox(e);
+      ['record', 'leaders', 'upcoming', 'results'].forEach(function (id) { $(id).innerHTML = empty('Unavailable'); });
+    });
+    setSorts(); loadTable();
+  }
+  $('refresh').addEventListener('click', loadAll);
+  loadAll();
+})();
+</script>
+</body>
+</html>

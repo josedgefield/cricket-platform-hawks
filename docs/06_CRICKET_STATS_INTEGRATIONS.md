@@ -1,5 +1,12 @@
 # 06 — Cricket Stats Integrations
 
+## Status (2026-10-04)
+- **SCA access method confirmed by the club:** use the CSV export button on the Hawks team pages (team 2291, club 7683) for players, results, schedule, batting, bowling and fielding.
+- The club is comfortable with polite **scheduled** fetching: every 6 hours, one request at a time, an identifying User-Agent, robots.txt respected.
+- **Implemented:** `apps/api`, a Spring Boot service with `ScaStatsController`. See [`apps/api/README.md`](../apps/api/README.md).
+  - If a CSV button has no downloadable URL (built client-side), the service reads the same table the button exports, labelled `html-table`.
+- **Not yet verified against the live site.** The build environment's network policy blocked the domain, so header mappings were tested on synthetic files only. The checklist is in the API README.
+
 ## Sources
 | Source | What | Known access | Status |
 |---|---|---|---|
