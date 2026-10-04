@@ -72,7 +72,7 @@ overdue = open/part_paid AND due_date < today (Asia/Singapore)
 | Ledger | A webhook creates `payments(method='stripe', external_ref=pi_…)` + allocations; fees recorded as a separate expense line (not deducted from the member's payment) |
 | Reconciliation | A nightly job pulls balance transactions and flags mismatches |
 | Failure | Timeouts, retries with backoff, dead-letter table, manual "reprocess event" button, alert on failures |
-| Security | Webhook signature verification; secret keys only in Edge Function env; PCI SAQ-A (hosted checkout) |
+| Security | Webhook signature verification; secret keys only in the server environment; PCI SAQ-A (hosted checkout) |
 | Fees (indicative, verify) | PayNow ≈ 1.3%; domestic cards ≈ 3.4% + S$0.50 |
 
 ## 8. Recommendations to the committee

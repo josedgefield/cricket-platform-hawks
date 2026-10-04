@@ -13,22 +13,24 @@ Hawks CC needs one place where players can:
 2. see **matches and stats** across SCA Club League, BPL and IAT30;
 3. **communicate**: announcements, availability, notifications and calendar, without digging through WhatsApp.
 
-**Recommendation in one line:**
-- A TypeScript monorepo with **Expo** (iOS, Android and the player web app from one codebase) and a **Next.js** admin console.
-- **Supabase Postgres in Singapore**, using an **append-only finance ledger** and **row-level security**.
+**Recommendation in one line** (architecture revised 2026-10-04, see §6):
+- A **Spring Boot modular monolith (Java 21)** on **PostgreSQL**, with an **append-only finance ledger** and authorisation enforced in the application. It runs identically on a laptop and on the server, so it can be tested and debugged locally.
+- **Expo** for iOS, Android and the player web app, calling the backend's REST API.
+- Hosted in Docker on an **Oracle Cloud Always Free VM in Singapore**.
 - **Manual PayNow-QR payments with treasurer reconciliation** now, and **Stripe** once the club is a registered entity.
 
-Estimated running cost is **about S$40/month** plus the Apple developer fee (US$99/yr).
+Estimated running cost is **about S$0/month** plus a domain (~S$20/yr) and the Apple developer fee (US$99/yr) once the iOS app ships.
 
 ### Facts confirmed by the club (2026-10-04)
 | Topic | Answer | Consequence |
 |---|---|---|
 | Legal entity | Informal team, no UEN | Stripe is not available, so Phase 1 uses PayNow QR with manual reconciliation (§4) |
-| Budget | Under S$50/month | Supabase Pro plus free tiers elsewhere (§6) |
-| Users, first season | Under 50 | One Supabase project per environment; no scaling work |
+| Budget | Under S$50/month (and the less the better) | Self-hosted on a free VM; free tiers elsewhere (§6) |
+| Users, first season | Under 50 | One app instance + one Postgres; no scaling work |
 | Design workflow | Code-first | Tokens in code plus Storybook; UI UX Pro Max skill vendored (§7) |
 | Brand | Use estimate from logo | Navy `#1E2A78` + white, gold accent, Montserrat. All values are tokens and marked as estimates |
 | Repo | Use this private repo | |
+| Backend (2026-10-04) | Spring Boot, Java, segregated modules, testable locally, nearly free hosting | Modular monolith + Oracle Always Free (§6, `docs/09`) |
 
 ---
 
@@ -59,7 +61,7 @@ Estimated running cost is **about S$40/month** plus the Apple developer fee (US$
 
 ## 3. Database management recommendations
 
-**Engine:** PostgreSQL on **Supabase** in region `ap-southeast-1` (Singapore). It's relational, which suits a ledger; RLS gives row-level authorisation; and auth, storage, edge functions and backups come bundled.
+**Engine:** **PostgreSQL 16**, self-hosted next to the app on the Singapore VM (managed Postgres such as Neon or Supabase is the fallback). It's relational, which suits a ledger. Authorisation is enforced by the Spring Boot application (§5).
 
 ### 3.1 Principles
 | # | Rule |
@@ -72,8 +74,8 @@ Estimated running cost is **about S$40/month** plus the Apple developer fee (US$
 | D6 | A generic `audit_log` trigger on sensitive tables records actor, action, table, row id, and before/after JSONB. |
 | D7 | Cricket data is stored **raw plus normalised**: `source_records` (raw payload, source, fetched_at, sha256) → canonical tables. Unknown values stay NULL. |
 | D8 | Imports are staged: `import_batches` → `import_rows` (validation status, messages) → commit. Each committed row records its `import_batch_id`, so a batch can be rolled back. |
-| D9 | All schema changes go through **SQL migrations in the repo** (`supabase/migrations`), reviewed in PRs, with CI applying them to a throwaway database. No dashboard click-ops in prod. |
-| D10 | Generated TypeScript types (`supabase gen types`) go into `packages/db`, and CI fails if they're stale. |
+| D9 | All schema changes go through **SQL migrations in the repo** (Flyway, `backend/src/main/resources/db/migration`), reviewed in PRs, with CI applying them to a throwaway database. No dashboard click-ops in prod. |
+| D10 | The API is described by OpenAPI generated from the code; client types for the Expo app are generated from it, and CI fails if they're stale. |
 
 ### 3.2 Core entities (see `docs/04_DOMAIN_MODEL.md` for fields)
 - **Identity:** `clubs`, `members` (the person), `profiles` (auth link), `memberships` (member ↔ club, status, season), `role_assignments`
@@ -83,7 +85,7 @@ Estimated running cost is **about S$40/month** plus the Apple developer fee (US$
 - **Platform:** `audit_log`, `import_batches`, `import_rows`, `consents`
 
 ### 3.3 Environments, backups, access
-- **Environments:** `local` (Supabase CLI + Docker), `staging` (a free project, OK to pause), `prod` (Pro). Only synthetic seed data outside prod.
+- **Environments:** `local` (`./gradlew bootRun`, Postgres in Docker), CI (Testcontainers), `prod` (the VM). A staging stack can run on the same VM when finance work starts. Only synthetic or public seed data outside prod.
 - **Backups:** Pro daily backups (7-day retention), plus a **weekly GitHub Action `pg_dump` → age-encrypted → private object storage**. A **restore drill each quarter** is documented in `docs/09`.
 - **Access:** raw DB and service-role credentials go to at most 2 technical operators. Management users get **application-level** elevated screens only (per CLAUDE.md principle 4).
 
@@ -136,12 +138,12 @@ Details: `docs/05_FINANCE_PAYMENTS.md`.
 
 | Area | Recommendation |
 |---|---|
-| **Authentication** | Supabase Auth: email OTP/magic link + Sign in with Apple + Google. **Invite-only** (admin adds the member, member claims via email). No public sign-up. |
+| **Authentication** | Spring Security: email one-time codes (built in) + Sign in with Apple when the iOS app ships. **Invite-only** (admin adds the member, member claims via email). No public sign-up. |
 | **MFA** | **TOTP MFA required** for `treasurer` and `club_admin`; finance and admin routes check `aal2`. |
-| **Authorisation** | RLS on **every** table, default deny. Policies use `has_role(club_id, role)` helper functions. **pgTAP tests per policy in CI.** UI hiding is never the security boundary. |
+| **Authorisation** | **Default deny** in Spring Security; every endpoint and service method declares the roles it needs, scoped by `club_id`. **Tests per role × endpoint in CI.** Ledger tables also reject `UPDATE`/`DELETE` with DB triggers. UI hiding is never the security boundary. |
 | **Roles** | `player`, `captain`, `treasurer`, `stats_admin`, `comms_admin`, `club_admin`. Scoped per club and optionally per team. See `docs/03`. |
-| **Secrets** | The service-role key only in Edge Functions and the Next.js server runtime, never in Expo bundles or `NEXT_PUBLIC_*`. Secrets live in GitHub/Vercel/EAS secret stores. `.env*` is git-ignored. |
-| **Files** | Payment screenshots and exports go in **private buckets**, served by short-lived signed URLs. MIME and size allow-list (JPEG/PNG/PDF, ≤5MB). EXIF stripped. Path is `club_id/member_id/…` with RLS on storage. |
+| **Secrets** | Database and mail credentials only in the server's `.env` (chmod 600) and GitHub secrets, never in the Expo bundle. Secrets live in GitHub/EAS secret stores. `.env*` is git-ignored. |
+| **Files** | Payment screenshots and exports go in **private buckets**, served by short-lived signed URLs. MIME and size allow-list (JPEG/PNG/PDF, ≤5MB). EXIF stripped. Path is `club_id/member_id/…`; the app checks the caller may see the file before issuing a URL. |
 | **Mobile** | Tokens in `expo-secure-store`. Push payloads contain **no PII or amounts** ("You have a new club notice"). Deep links validated. Optional biometric lock on the Money tab. |
 | **Web** | CSP, HSTS, `frame-ancestors 'none'`, SameSite cookies, CSRF protection on server actions, rate limiting on auth/OTP and claims. |
 | **Supply chain** | Dependabot, CodeQL, GitHub secret scanning + push protection, lockfile committed, pinned GitHub Actions, branch protection on `main` (PR + green CI). |
@@ -158,38 +160,45 @@ Details: `docs/10_SECURITY_PRIVACY_AUDIT.md`.
 
 ## 6. Architecture and stack
 
+**Revised 2026-10-04:** one Spring Boot application split into modules, rather than Supabase or microservices. The club wants a backend it can run, test and debug itself, and host for nearly free.
+
 ```
-apps/
-  mobile/      Expo SDK + Expo Router + NativeWind  → iOS, Android, and player web (expo export)
-  admin/       Next.js (App Router) + Tailwind       → treasurer/admin desktop console
-packages/
-  domain/      ledger maths, allocation, PayNow SGQR builder, zod schemas (pure TS, fully unit tested)
-  db/          generated Supabase types + typed query helpers
-  ui/          design tokens (from design-system/MASTER.md) → Tailwind/NativeWind preset
-  config/      eslint, tsconfig, prettier
-supabase/
-  migrations/  SQL migrations, RLS policies, triggers
-  functions/   Edge Functions: notify, import-commit, bank-csv-match, ics-feed, (later) stripe-webhook
-  tests/       pgTAP RLS + ledger tests
-design-system/ generated + adapted design system (UI UX Pro Max)
-design/prototype/ static clickable HTML prototype
-docs/          specifications
+ Expo app (iOS / Android / web)   ── HTTPS + JSON (OpenAPI) ──►
+ ┌──────────── Spring Boot 4 · Java 21 (one container) ───────────┐
+ │ club · identity · finance (ledger) · stats · comms · imports   │  boundaries checked by Spring Modulith
+ │ Spring Security · Flyway · scheduled jobs · audit · sync runs  │
+ └──────────────────────────────┬─────────────────────────────────┘
+                                ▼
+                          PostgreSQL 16
+```
+
+```
+backend/            Spring Boot app: src/main/java/sg/hawkscc/platform/<module>, Flyway migrations, tests
+deploy/             production compose (app + Postgres + Caddy), backup script, VM runbook
+apps/mobile/        Expo app (to come)
+design-system/      design tokens and guidance
+design/prototype/   static clickable HTML prototype
+docs/               specifications
 ```
 
 | Concern | Choice | Monthly cost |
 |---|---|---|
-| DB/Auth/Storage/Functions | Supabase Pro (SG region) | ~US$25 |
-| Admin web hosting | Vercel Hobby (upgrade if club use breaches the ToS) | $0 |
+| App + database | Oracle Cloud Always Free Arm VM (Singapore), Docker Compose | $0 |
+| HTTPS | Caddy (automatic Let's Encrypt) | $0 |
+| Backups | Encrypted `pg_dump` to Oracle Object Storage (free 20 GB) | $0 |
+| Player web | Expo web build on Cloudflare Pages | $0 |
 | Mobile builds/updates | Expo EAS free tier | $0 |
-| Email | Resend free tier (3k/month) | $0 |
-| Push | Expo Notifications (APNs/FCM) | $0 |
+| Email | Free tier of an SMTP provider (Brevo/Resend) | $0 |
 | Errors | Sentry Developer | $0 |
-| CI | GitHub Actions (private repo minutes) | $0 at this scale |
-| Store accounts | Apple US$99/yr, Google US$25 once | ~S$11/mo amortised |
+| CI | GitHub Actions | $0 at this scale |
+| Domain | e.g. `hawkscc.sg` | ~S$2/mo amortised |
+| Store accounts | Apple US$99/yr, Google US$25 once | ~S$11/mo amortised, when the apps ship |
 
-**Why Expo for player web as well as Next.js admin?** Players get identical UX on every device from one codebase. Treasurer workflows (dense tables, CSV upload, bulk actions) are much better on Next.js. Both share `packages/domain` and `packages/ui`.
+**Local development:** `./gradlew bootRun` starts Postgres and Mailpit in Docker, applies migrations and loads seed data; debug from IntelliJ with breakpoints; `./gradlew test` runs unit tests plus integration tests against a real Postgres (Testcontainers). See `backend/README.md`.
 
-Details: `docs/09_TECH_ARCHITECTURE.md`.
+**Fallback host:** the same container runs on Google Cloud Run with Neon Postgres, with no code changes.
+
+Details: `docs/09_TECH_ARCHITECTURE.md`, `deploy/README.md`.
 
 ---
 
@@ -210,7 +219,7 @@ Each phase is done only when it meets CLAUDE.md's *Definition of done*: migratio
 
 | Phase | Scope | Key deliverables | Gate to start |
 |---|---|---|---|
-| **0. Foundations** (2–3 wks) | Monorepo, CI, Supabase local/staging/prod, auth (invite-only, MFA for admins), roles + RLS helpers, audit log, tokens + Storybook, app shells | `pnpm dev` runs everything; CI covers lint/type/test/pgTAP; empty authenticated shells on iOS, Android and web | This plan approved |
+| **0. Foundations** (2–3 wks) | Spring Boot modules + CI (✅ started), deploy to the VM, identity (invite-only, email codes, MFA for admins), roles, audit log, Expo app shell | `./gradlew bootRun` runs the backend; CI covers build/tests/module boundaries; empty authenticated shells on iOS, Android and web | This plan approved |
 | **1. Finance MVP** (4–5 wks) | Fee schedules, charges (bulk), ledger + balance view, statement, PayNow SGQR, payment claims, treasurer confirm, bank CSV matcher, adjustments, reminders, Excel import (preview → commit → rollback), admin console | Treasurer runs one real billing cycle end to end in staging with masked data | Excel sample inspected; fee structure confirmed; PayNow account decided |
 | **2. Matches & comms** (3–4 wks) | Fixtures (manual + import), availability, selection, announcements with replies/reactions, push + email, notification prefs | Captain picks an XI from availability; announcements reach everyone by push | Roles confirmed |
 | **3. Stats** (3–4 wks) | Canonical stats model, SCA CSV adapter, BPL/IAT30 adapters (method TBC), sync runs with "last synced", player profile + leaderboards + charts | A season's stats match the source exports, verified by reconciliation tests | SCA/BPL/IAT30 access method confirmed |

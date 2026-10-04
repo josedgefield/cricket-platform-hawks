@@ -14,7 +14,9 @@ External references used in planning. Figures marked *verify* must be checked ag
 | PDPA | Personal Data Protection Commission (pdpc.gov.sg) — PDPA obligations and data breach notification guidance | 3-calendar-day notification to PDPC once a breach is assessed as notifiable |
 | Apple payments rule | App Store Review Guidelines §3.1.3(e) "Goods and Services Outside of the App" | Real-world services may use external payment — *verify before submission* |
 | Apple sign-in & deletion | App Store Review Guidelines §4.8 (Sign in with Apple), §5.1.1(v) (account deletion) | *verify* |
-| Supabase | supabase.com/docs, supabase.com/pricing | Singapore region `ap-southeast-1`; Pro plan backups; free projects pause when inactive — *verify* |
+| Spring Boot | [spring.io](https://spring.io/projects/spring-boot), [endoflife.date](https://endoflife.date/spring-boot) | 4.1.x current as of Oct 2026; Spring Modulith 2.1; springdoc-openapi 3.0.x for Boot 4 |
+| Oracle Cloud Always Free | oracle.com/cloud/free | Arm A1 VM limits, idle-reclamation policy — *verify before relying on it* |
+| Supabase (no longer the backend) | supabase.com/docs, supabase.com/pricing | Possible managed-Postgres fallback only |
 | Expo | docs.expo.dev (Router, Notifications, EAS) | |
 | OWASP ASVS | owasp.org/www-project-application-security-verification-standard | Security baseline |
 | WCAG 2.2 | w3.org/TR/WCAG22 | Accessibility baseline |

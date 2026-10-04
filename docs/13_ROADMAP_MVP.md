@@ -6,11 +6,11 @@ Stats (Phase 3) follows as soon as data access is confirmed. Durations assume on
 
 ## Phase 0 — Foundations (2–3 weeks)
 - Monorepo scaffold (pnpm + Turborepo), lint/format/typecheck, CI pipeline, Dependabot/CodeQL, branch protection.
-- Supabase projects (local, staging, prod in SG); migrations for clubs, members, profiles, memberships, role_assignments, consents and audit_log; RLS helpers + pgTAP harness.
+- Spring Boot backend (✅ skeleton + stats module), deployment to the Oracle VM; Flyway migrations for members, memberships, role_assignments, consents and audit_log; authorisation rules + role tests.
 - Auth: invite flow, OTP/magic link, Apple/Google, MFA enrolment for admins.
 - `packages/ui` tokens from MASTER.md; Storybook; app shells (tabs, admin sidebar) with all states.
 - Sentry, logging, runbooks (restore, key rotation).
-- **Exit:** a new member can be invited, log in on iOS, Android and web, and see an empty Home. CI is green, including RLS tests.
+- **Exit:** a new member can be invited, log in on iOS, Android and web, and see an empty Home. CI is green, including authorisation tests.
 
 ## Phase 1 — Finance MVP (4–5 weeks)
 - Fee schedules, bulk charges, ledger tables + triggers, balance/statement functions.

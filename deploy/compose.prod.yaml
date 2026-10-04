@@ -1,0 +1,62 @@
+# Production stack for one small VM (e.g. Oracle Cloud Always Free, Singapore region).
+# Usage on the server:  docker compose -f compose.prod.yaml --env-file .env up -d
+# See deploy/README.md. Not yet exercised on a real VM — treat as a reviewed draft.
+services:
+  app:
+    image: ${HAWKS_IMAGE:-ghcr.io/josedgefield/cricket-platform-hawks/backend:latest}
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://postgres:5432/hawks
+      DATABASE_USERNAME: hawks
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      HAWKS_STATS_SEED: ${HAWKS_STATS_SEED:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # bash's /dev/tcp avoids installing curl in the runtime image.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /actuator/health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    # Not published to the internet: only Caddy talks to it.
+    expose:
+      - "8080"
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: hawks
+      POSTGRES_USER: hawks
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hawks -d hawks"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # HTTPS with automatic Let's Encrypt certificates.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      HAWKS_DOMAIN: ${HAWKS_DOMAIN:?set HAWKS_DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  caddy-data:
+  caddy-config:

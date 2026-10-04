@@ -14,7 +14,7 @@ These rules apply to any AI-assisted (Claude Code) or human contribution to this
 
 ## While coding
 - **Migrations:** one SQL migration per change. Never edit an applied migration. Regenerate types.
-- **Security:** RLS policy + pgTAP test in the **same PR** as any new table.
+- **Security:** authorisation rules + role tests in the **same PR** as any new endpoint or table.
 - **Ledger:** never UPDATE or DELETE ledger rows; never add a mutable balance column.
 - **Money:** integer cents; use `packages/domain/money.ts` helpers only.
 - **Data:** never invent or default unknown cricket or finance data.
@@ -26,8 +26,8 @@ These rules apply to any AI-assisted (Claude Code) or human contribution to this
 
 ## Definition of done (from CLAUDE.md)
 - [ ] Schema/migrations
-- [ ] API/service layer (SQL function / Edge Function)
-- [ ] Authorisation (RLS + tests)
+- [ ] API/service layer (Spring module service + REST endpoint)
+- [ ] Authorisation (Spring Security rules + role tests)
 - [ ] Empty/loading/error/success (+ offline/stale) states
 - [ ] Audit/observability for sensitive flows
 - [ ] Automated tests (unit + db + e2e where relevant)
@@ -37,7 +37,7 @@ These rules apply to any AI-assisted (Claude Code) or human contribution to this
 
 ## Pull requests
 - Small PRs with a clear title and description that links requirement IDs.
-- CI must be green. Finance, RLS and security changes need human review from a technical operator.
+- CI must be green. Finance, authorisation and security changes need human review from a technical operator.
 - No direct pushes to `main`.
 
 ## Vendored skills

@@ -5,8 +5,8 @@
 |---|---|---|
 | Unit (pure TS) | Vitest | Money formatting/rounding, allocation algorithm, balance maths, SGQR payload + CRC16, stats formulas with null rules, CSV/Excel parsers, bank matcher scoring |
 | Property-based | fast-check | Ledger invariants: for any sequence of charges/payments/adjustments, balance = Σledger; allocations never exceed amounts |
-| Database | pgTAP (via `supabase test db`) | **RLS for every role × table × CRUD**; append-only triggers; SQL functions (confirm claim, adjust, import commit/rollback); audit rows written |
-| Integration | Vitest + local Supabase | Edge Functions: import-validate, bank-csv-match, notify outbox, ics-feed, (later) stripe-webhook with signed fixtures and replayed duplicate events |
+| Database | JUnit + Testcontainers Postgres | **Authorisation for every role × endpoint**; append-only triggers; SQL functions (confirm claim, adjust, import commit/rollback); audit rows written |
+| Integration | Spring Boot tests over HTTP (Testcontainers) | Services: import-validate, bank-csv-match, notify outbox, ics-feed, (later) stripe-webhook with signed fixtures and replayed duplicate events |
 | E2E web | Playwright | Admin: raise bulk charges → player claim → treasurer confirm → balance zero; Excel import preview → commit → rollback; role denial paths |
 | E2E mobile | Maestro (or Detox) | Login (OTP stub), Home, availability toggle, Pay with PayNow sheet, claim submit |
 | Visual/a11y | Storybook + axe; Playwright screenshots at 375/768/1440 | Contrast, focus order, touch target size, no horizontal scroll |
@@ -18,7 +18,7 @@
 4. A wrong charge is voided: it's excluded from the balance and still visible in the statement.
 5. A refund of a credit increases the balance correctly, with an audit row.
 6. Uploading the same bank CSV twice is rejected. A duplicate line in a new file is flagged.
-7. A treasurer without MFA cannot confirm a claim (RLS denies it, and the UI explains why).
+7. A treasurer without MFA cannot confirm a claim (the API denies it, and the UI explains why).
 8. A player cannot read another player's charges, claims or proofs (API + storage).
 9. Rolling back an import batch reverses all its ledger effects and leaves the history intact.
 
@@ -27,9 +27,9 @@
 - Missing fields show "—" and are never computed as 0.
 
 ## Quality gates in CI
-- 100% of RLS policies have tests (a script compares `pg_policies` with the test manifest).
+- Every endpoint has an authorisation test (a test compares the registered endpoints with the test manifest).
 - Coverage for `packages/domain` is ≥ 90% lines.
-- No `any` in the domain or db packages; strict TypeScript.
+- Module boundaries pass `ModularityTests`; strict TypeScript in the Expo app.
 - Lighthouse a11y score ≥ 95 on player web key pages.
 
 ## Manual QA per release

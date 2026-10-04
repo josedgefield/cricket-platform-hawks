@@ -23,7 +23,7 @@
 
 - **Preferences** are set per category (finance, matches, announcements, social). Finance receipts and security emails can't be disabled.
 - **Privacy:** push text never includes amounts or other people's names. For example, *"Payment update — tap to view"*.
-- **Reliability:** an outbox table is processed by an Edge Function, with retries and backoff. Bad push tokens are pruned from Expo receipts. Failures go to Sentry.
+- **Reliability:** an outbox table is processed by a scheduled job in the backend, with retries and backoff. Bad push tokens are pruned from Expo receipts. Failures go to Sentry.
 - **Quiet hours** are 22:00–07:00 SGT for non-urgent categories.
 
 ## Calendar
