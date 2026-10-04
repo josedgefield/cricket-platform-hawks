@@ -36,7 +36,8 @@
       <div><span class="eyebrow">SCA + CricHeroes</span><h1 id="st-h" style="font-size:clamp(28px,4vw,40px);font-weight:800;text-transform:uppercase;margin:6px 0 0">Player stats</h1></div>
     </div>
     <p class="sample-banner" role="note"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg>
-      <span><b>Partial data.</b> The CricHeroes figures come from the team leaderboard PDFs (top 10 per category) and the BPL 2025 points table, captured on 4 Oct 2026. <b>SCA stats aren't imported yet.</b> Players outside a top 10 show "—" because we don't know their figures, not because they scored zero.</span></p>
+      <span><b>Partial data.</b> The CricHeroes figures come from the team leaderboard PDFs (top 10 per category) and the BPL 2025 points table, captured on 4 Oct 2026. <span id="sca-note"><b>SCA stats aren't imported yet.</b></span> Players outside a top 10 show "—" because we don't know their figures, not because they scored zero.</span></p>
+    <p class="synced" id="api-state" role="status" style="margin-top:8px">Connecting to the stats API…</p>
   </div>
 </section>
 
@@ -118,7 +119,7 @@
 
 <footer class="site-foot" id="contact">
   <div class="wrap">
-    <div class="foot-note" style="border-top:0;margin-top:0">© 2026 Hawks Cricket Club · Design prototype: CricHeroes figures as published; SCA not yet imported.
+    <div class="foot-note" style="border-top:0;margin-top:0">© 2026 Hawks Cricket Club · Design prototype: figures as published by each source.
       <button class="btn btn-ghost-light btn-sm" style="margin-left:8px" onclick="hawksToggleTheme()"><svg class="i i-sm" aria-hidden="true"><use href="#i-moon"/></svg> Theme</button>
     </div>
   </div>
@@ -158,7 +159,7 @@
   }
 
   function empty(cols, what) {
-    var msg = filter === 'sca' ? 'SCA stats haven\'t been imported yet.' : 'No ' + what + ' figures from this source yet.';
+    var msg = filter === 'sca' && S.SOURCES.sca.status === 'none' ?'SCA stats haven\'t been imported yet.' : 'No ' + what + ' figures from this source yet.';
     return '<tr><td colspan="' + cols + '" class="muted">' + msg + '</td></tr>';
   }
 
@@ -236,7 +237,43 @@
     });
   }
 
+  // Live data from the backend. The bundled snapshot above stays on screen if it can't be reached.
+  // Override the address with ?api=http://host:port
+  var API = new URLSearchParams(location.search).get('api') || 'http://localhost:8080';
+  var apiState = document.getElementById('api-state');
+  function getJson(path) {
+    var ctl = new AbortController(), timer = setTimeout(function () { ctl.abort(); }, 8000);
+    return fetch(API + path, { signal: ctl.signal }).then(function (res) {
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(path + ' returned HTTP ' + res.status);
+      return res.json();
+    });
+  }
+  function loadLive() {
+    Promise.all([getJson('/api/stats/players?source=sca'), getJson('/api/stats/players?source=cricheroes'), getJson('/api/stats/sources')])
+      .then(function (r) {
+        rows = r[0].map(function (p) { return S.fromApi(p, 'sca'); }).concat(r[1].map(function (p) { return S.fromApi(p, 'cricheroes'); }));
+        r[2].forEach(function (st) {
+          var s = S.SOURCES[st.source]; if (!s) return;
+          s.lastSynced = st.lastSucceededAt ? st.lastSucceededAt.slice(0, 10) : null;
+          if (st.source === 'sca') {
+            s.status = !s.lastSynced ? 'none' : st.lastRunStatus === 'failed' ? 'partial' : 'ok';
+            s.method = 'Leaderboard tables copied from the SCA website, imported through the admin API';
+          }
+        });
+        document.getElementById('sca-note').innerHTML = S.SOURCES.sca.status === 'none' ? '<b>SCA stats aren\'t imported yet.</b>'
+          : 'SCA Club League figures are the full Hawks leaderboard, last imported ' + esc(S.SOURCES.sca.lastSynced) + '.';
+        apiState.textContent = 'Live from the stats API (' + API + ') · ' + r[0].length + ' SCA and ' + r[1].length + ' CricHeroes players';
+        applied = {};
+        renderProv(); renderTables();
+      })
+      .catch(function (e) {
+        apiState.innerHTML = '<span class="status status-warn">Stats API not reachable</span> Showing the bundled CricHeroes snapshot. (' + esc(e.message || e) + ')';
+      });
+  }
+
   renderProv(); renderTables(); renderPoints();
+  loadLive();
 })();
 </script>
 </body>

@@ -1,5 +1,7 @@
 package sg.hawkscc.platform.security;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +14,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Default deny. Public: stats reads, health, and API docs (docs are switched off outside dev).
@@ -27,6 +32,7 @@ class SecurityConfig {
         http
                 // Stateless JSON API: no session cookie, so no CSRF exposure.
                 .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/stats/**").permitAll()
@@ -36,6 +42,21 @@ class SecurityConfig {
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults());
         return http.build();
+    }
+
+    /**
+     * Lets web pages on other origins (e.g. the prototype on localhost:8000) read public stats.
+     * No origins are allowed unless hawks.cors.allowed-origins lists them.
+     */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${hawks.cors.allowed-origins:}") List<String> allowedOrigins) {
+        CorsConfiguration stats = new CorsConfiguration();
+        stats.setAllowedOrigins(allowedOrigins.stream().filter(o -> !o.isBlank()).toList());
+        stats.setAllowedMethods(List.of("GET"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/stats/**", stats);
+        return source;
     }
 
     @Bean

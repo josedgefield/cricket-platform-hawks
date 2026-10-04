@@ -405,8 +405,35 @@
     return out;
   }
 
+  /* ---------- backend API (GET /api/stats/players?source=…) ---------- */
+
+  // A rate the backend took from the source (it couldn't calculate it) goes to
+  // `reported`; a calculated one is recalculated here from the same counts.
+  function reportedOnly(rate) {
+    return rate && rate.reported && rate.value !== null ? Number(rate.value) : null;
+  }
+
+  // One backend PlayerStats (already one source) → one canonical row.
+  function fromApi(p, source) {
+    var r = emptyRow(p.name, source), b = p.batting, w = p.bowling, f = p.fielding;
+    r.mat = p.matches;
+    if (b) {
+      r.bat = { inns: b.inns, no: b.notOuts, runs: b.runs, balls: b.balls, hs: b.highScore, fours: b.fours, sixes: b.sixes };
+      r.reported.batAvg = reportedOnly(b.average);
+      r.reported.sr = reportedOnly(b.strikeRate);
+    }
+    if (w) {
+      r.bowl = { inns: w.inns, balls: w.balls, runs: w.runs, wkts: w.wickets, maidens: w.maidens };
+      r.reported.econ = reportedOnly(w.economy);
+      r.reported.bowlAvg = reportedOnly(w.average);
+    }
+    if (f) r.field = { ct: f.catches, st: f.stumpings, ro: f.runOuts, dis: f.dismissals };
+    return r;
+  }
+
   var api = {
     SOURCES: SOURCES, RAW_CRICHEROES: RAW_CRICHEROES, ROWS: ROWS, POINTS_TABLE: POINTS_TABLE, ALIASES: ALIASES,
+    fromApi: fromApi,
     oversToBalls: oversToBalls, ballsToOvers: ballsToOvers, derive: derive, combine: combine, table: table,
     rate: rate, dismissals: dismissals, leaders: leaders, fmt: fmt, emptyRow: emptyRow,
     normaliseLeaderboard: normaliseLeaderboard, parseCsv: parseCsv, importLeaderboard: importLeaderboard,

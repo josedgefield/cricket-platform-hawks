@@ -53,6 +53,24 @@ Player,Inn,Runs,Avg,SR
 Hardik Shelat,4,90,30.00,150.00
 ```
 
+### Import SCA stats with curl
+
+Copy each leaderboard table (batting, bowling, fielding) from the SCA website and paste
+it, unchanged, into `sca-batting.csv`, `sca-bowling.csv` and `sca-fielding.csv` in one
+folder. The parser understands SCA's copied layout (sort arrows in the header, each
+player over three lines). Then, with the app running:
+
+```bash
+scripts/import-sca.sh /path/to/folder "SCA Club League"
+```
+
+Each response lists new players and any warnings (for example a published rate that
+disagrees with the counts). Running it again with the same files changes nothing.
+
+The stats page in `design/prototype/stats.html` reads `/api/stats/**` from
+`http://localhost:8080` (add `?api=http://host:port` to the page URL to change it).
+The dev profile allows it through CORS when served from `localhost:8000`.
+
 ## Debug it
 
 In IntelliJ: **File → Open** the `backend` folder, wait for the Gradle import, then

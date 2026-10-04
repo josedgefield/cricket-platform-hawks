@@ -138,3 +138,23 @@ test('missing player column is a clear error', () => {
   const res = S.importLeaderboard('Runs,Balls\n1,2', 'batting');
   assert.match(res.errors[0], /No “Player” column/);
 });
+
+test('backend player stats map to canonical rows; only source rates stay as reported', () => {
+  const r = S.fromApi({
+    name: 'Alok Patra', matches: 9,
+    batting: { inns: 9, notOuts: 0, runs: 360, balls: 316, highScore: 85, fours: 47, sixes: 8,
+      average: { value: 40.0, reported: false }, strikeRate: { value: 113.92, reported: false } },
+    bowling: null,
+    fielding: { catches: 4, stumpings: 1, runOuts: 3, dismissals: 8 }
+  }, 'sca');
+  assert.equal(r.source, 'sca');
+  assert.equal(r.bat.runs, 360);
+  assert.equal(r.reported.sr, null); // calculated by the backend → recalculated from counts here
+  assert.equal(r.bowl.wkts, null); // no bowling → unknown, not 0
+  assert.equal(S.dismissals(S.table([r], 'all')[0]), 8);
+  assert.equal(S.rate(S.table([r], 'all')[0], 'sr').v.toFixed(2), '113.92');
+
+  const ch = S.fromApi({ name: 'Vishal', matches: null, batting: { inns: 4, notOuts: null, runs: 56, balls: null,
+    highScore: null, fours: null, sixes: null, average: { value: 14.0, reported: true }, strikeRate: { value: 72.73, reported: true } } }, 'cricheroes');
+  assert.deepEqual(S.rate(S.table([ch], 'all')[0], 'batAvg'), { v: 14, reported: true });
+});
