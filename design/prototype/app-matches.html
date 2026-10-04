@@ -63,9 +63,9 @@
           <tbody></tbody>
         </table>
       </div>
-      <p class="muted" style="font-size:13px;margin:8px 0 0">Sample data until SCA and CricHeroes figures are imported.</p>
+      <p class="muted" style="font-size:13px;margin:8px 0 0">CricHeroes figures from the BPL 2025 leaderboards (top 10 per category). SCA isn't imported yet.</p>
 
-      <div class="block-head" style="margin-top:20px"><h2>Runs by match</h2></div>
+      <div class="block-head" style="margin-top:20px"><h2>Runs by match</h2><span class="status status-warn">Sample</span></div>
       <figure class="card" style="margin:0">
         <svg class="chart" viewBox="0 0 320 170" role="img" aria-labelledby="ch-t ch-d">
           <title id="ch-t">Runs in the last 8 innings</title>
@@ -74,7 +74,7 @@
           <g class="axis"><text x="2" y="24">75</text><text x="2" y="74">50</text><text x="2" y="124">25</text><text x="10" y="150">0</text></g>
           <g id="bars"></g>
         </svg>
-        <figcaption class="muted" style="font-size:13px">Gold = season best · data table below</figcaption>
+        <figcaption class="muted" style="font-size:13px">Gold = season best · data table below · placeholder until match scorecards are imported</figcaption>
       </figure>
       <div class="card" style="padding:8px 8px 0;margin-top:12px">
         <table class="data">
@@ -104,17 +104,17 @@
 <script>
   // My stats: the signed-in player (prototype: Arjun M.), combined or per source
   (function () {
-    var S = window.HawksStats, me = 'Arjun M.';
+    var S = window.HawksStats, me = 'Puttur Shreyas';
     function mine(src) { return S.table(S.ROWS, src).filter(function (r) { return r.player === me; })[0] || null; }
     function tiles(src) {
-      var r = mine(src), v = r ? [[r.bat.runs, 0, 'Runs'], [r.d.batAvg, 1, 'Avg'], [r.d.sr, 1, 'SR'], [r.bowl.wkts, 0, 'Wkts'], [r.d.econ, 1, 'Econ'], [r.field.ct, 0, 'Catches']] : [];
+      var r = mine(src), v = r ? [[r.bat.runs, 0, 'Runs'], [S.rate(r, 'batAvg').v, 1, 'Avg'], [S.rate(r, 'sr').v, 1, 'SR'], [r.bowl.wkts, 0, 'Wkts'], [S.rate(r, 'econ').v, 2, 'Econ'], [r.field.ct, 0, 'Catches']] : [];
       document.getElementById('my-tiles').innerHTML = v.length ? v.map(function (t) { return '<div class="stat-tile"><b>' + S.fmt(t[0], t[1]) + '</b><small>' + t[2] + '</small></div>'; }).join('')
         : '<p class="muted" style="grid-column:1/-1">No stats from this source yet.</p>';
     }
     document.getElementById('my-by-src').querySelector('tbody').innerHTML = Object.keys(S.SOURCES).map(function (k) {
       var r = mine(k), lbl = '<span class="src src-' + k + '">' + S.SOURCES[k].label + '</span> <small class="muted">' + S.SOURCES[k].competition + '</small>';
       if (!r) return '<tr><td>' + lbl + '</td><td class="n" colspan="5">—</td></tr>';
-      return '<tr><td>' + lbl + '</td><td class="n">' + S.fmt(r.bat.runs) + '</td><td class="n">' + S.fmt(r.d.batAvg, 1) + '</td><td class="n">' + S.fmt(r.d.sr, 1) + '</td><td class="n">' + S.fmt(r.bowl.wkts) + '</td><td class="n">' + S.fmt(r.d.econ, 1) + '</td></tr>';
+      return '<tr><td>' + lbl + '</td><td class="n">' + S.fmt(r.bat.runs) + '</td><td class="n">' + S.fmt(S.rate(r, 'batAvg').v, 1) + '</td><td class="n">' + S.fmt(S.rate(r, 'sr').v, 1) + '</td><td class="n">' + S.fmt(r.bowl.wkts) + '</td><td class="n">' + S.fmt(S.rate(r, 'econ').v, 2) + '</td></tr>';
     }).join('');
     var bs = document.querySelectorAll('#my-src button');
     bs.forEach(function (b) { b.addEventListener('click', function () { bs.forEach(function (x) { x.setAttribute('aria-selected', x === b); }); tiles(b.getAttribute('data-src')); }); });

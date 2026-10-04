@@ -147,15 +147,10 @@
 <section class="section" id="stats" aria-labelledby="st-h" style="padding-top:0">
   <div class="wrap">
     <div class="section-head">
-      <div><span class="eyebrow">All competitions · 2026</span><h2 id="st-h">Season leaders</h2></div>
-      <span class="synced"><span class="src src-sca">SCA</span><span class="src src-cricheroes">CricHeroes</span> Combined · <a href="stats.html">Full stats &amp; sources</a></span>
+      <div><span class="eyebrow">BPL 2025 · CricHeroes</span><h2 id="st-h">Season leaders</h2></div>
+      <span class="synced"><span class="src src-cricheroes">CricHeroes</span> SCA not yet imported · <a href="stats.html">Full stats &amp; sources</a></span>
     </div>
-    <div class="leaders">
-      <article class="card card--accent leader"><div class="avatar">AM</div><div><div class="lbl">Most runs</div><div class="big num">512</div><div class="muted">Arjun M. · avg 46.5</div></div></article>
-      <article class="card card--accent leader"><div class="avatar">KP</div><div><div class="lbl">Most wickets</div><div class="big num">27</div><div class="muted">Kiran P. · econ 4.7</div></div></article>
-      <article class="card card--accent leader"><div class="avatar">DT</div><div><div class="lbl">Best strike rate</div><div class="big num">148.4</div><div class="muted">Daniel T. · min 100 balls</div></div></article>
-      <article class="card card--accent leader"><div class="avatar">SW</div><div><div class="lbl">Most dismissals</div><div class="big num">19</div><div class="muted">Sam W. · keeper</div></div></article>
-    </div>
+    <div class="leaders" id="leaders"><p class="muted">Loading stats…</p></div>
   </div>
 </section>
 
@@ -227,14 +222,33 @@
       <div><h4>Members</h4><a href="app-home.html">Player login</a><a href="admin-reconcile.html">Committee console</a><a href="#">Privacy notice</a></div>
       <div><h4>Contact</h4><a href="#"><span style="display:inline-flex;gap:8px;align-items:center"><svg class="i i-sm" aria-hidden="true"><use href="#i-mail"/></svg> hello@hawks.example</span></a><a href="#">Instagram</a><a href="#">Facebook</a></div>
     </div>
-    <div class="foot-note">© 2026 Hawks Cricket Club · Design prototype: all names, scores and figures are fictional.
+    <div class="foot-note">© 2026 Hawks Cricket Club · Design prototype: fixtures and results are fictional; season leaders and stats are from CricHeroes.
       <button class="btn btn-ghost-light btn-sm" style="margin-left:8px" onclick="hawksToggleTheme()"><svg class="i i-sm" aria-hidden="true"><use href="#i-moon"/></svg> Theme</button>
     </div>
   </div>
 </footer>
 
 <script src="icons.js"></script>
+<script src="stats-data.js"></script>
 <script>
+  // Season leaders from the same data as stats.html
+  (function () {
+    var S = window.HawksStats, L = S.leaders(S.table(S.ROWS, 'all'));
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function initials(n) { var w = n.split(' '); return (w[0][0] + (w.length > 1 ? w[w.length - 1][0] : '')).toUpperCase(); }
+    function names(x) { return x.rows.map(function (r) { return r.player; }).join(' & '); }
+    function card(label, x, value, note) {
+      if (!x) return '';
+      return '<article class="card card--accent leader"><div class="avatar">' + esc(x.rows.length > 1 ? x.rows.length + '=' : initials(x.rows[0].player)) + '</div><div><div class="lbl">' + label + '</div><div class="big num">' + value + '</div><div class="muted">' + esc(names(x)) + (note ? ' · ' + note : '') + '</div></div></article>';
+    }
+    var sr = L.sr && S.rate(L.sr.rows[0], 'sr');
+    document.getElementById('leaders').innerHTML =
+      card('Most runs', L.runs, L.runs && L.runs.value, L.runs && L.runs.rows.length === 1 ? L.runs.rows[0].bat.inns + ' inns' : '') +
+      card('Most wickets', L.wkts, L.wkts && L.wkts.value, L.wkts && L.wkts.rows.length === 1 ? 'econ ' + S.fmt(S.rate(L.wkts.rows[0], 'econ').v, 2) : '') +
+      card('Best strike rate', L.sr, sr ? S.fmt(sr.v, 2) : '—', 'min ' + L.minSrInns + ' inns') +
+      card('Most dismissals', L.dis, L.dis && L.dis.value, L.dis && L.dis.rows.length > 1 ? 'joint' : '') ||
+      '<p class="muted">No stats imported yet.</p>';
+  })();
   // Countdown to a fictional fixture (Sat 11 Oct 2026, 09:30 SGT)
   (function () {
     var target = new Date('2026-10-11T09:30:00+08:00').getTime();

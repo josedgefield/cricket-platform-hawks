@@ -42,7 +42,24 @@
 
 **Combining with SCA:** stats are stored per source and combined at read time. A combined total is `NULL` if **any** contributing source lacks that value, because a partial sum looks complete and would be wrong. Every stats view shows which sources contributed (source chips) and lets the viewer filter to one source.
 
-**Prototype:** `design/prototype/stats.html` (club stats, source filter, BPL points table, paste/CSV import preview) and the "My stats" tab in `app-matches.html`. Both read `design/prototype/stats-data.js`, which holds **sample figures** until real data is imported. Run the logic tests with `node --test design/prototype/stats-data.test.js`.
+**What CricHeroes downloads contain (checked 2026-10-04).** The only download is a **PDF rendered as an image** (jsPDF, no text layer), so it can't be parsed and must be transcribed or OCR'd. Each PDF also lists only the **top 10** players:
+
+| PDF | Printed columns | Not included |
+|---|---|---|
+| Batting leaderboard | Inn, Runs, Avg, SR | Mat, NO, balls, HS, 4s, 6s |
+| Bowling leaderboard | Inn, W, Eco, Avg ("Dots" is printed empty) | overs/balls, maidens, runs conceded |
+| Fielding leaderboard | Mat, Dismissal, Catches, R/O | stumpings |
+| Points table | every group: M, W, L, D, T, NR, NRR, For, Against, Pts, Last 5 | — |
+
+Consequences:
+- **Counts that aren't printed stay `NULL`.** We do **not** back-solve balls from SR, or runs conceded from Avg × W. The values would be rounded guesses presented as facts.
+- **Rates are shown as published,** marked "†", and only for a single source. They can't be combined with SCA rates, because combining needs the counts.
+- **A player outside a top 10 is unknown for that category, not zero.**
+- **Per-match scorecards are the better source.** They carry the full counts (balls, not-outs, HS, 4s/6s, overs, maidens, runs conceded, dismissal types including stumpings) for **every** player. Totals can then be recomputed and cross-checked against these leaderboards and the points table's team For/Against (Hawks: 912/123.3 for, 607/125 against).
+
+**Current data:** `design/prototype/stats-data.js` holds `RAW_CRICHEROES`, the leaderboard values transcribed exactly as printed, and the BPL 2025 Supreme-group points table. `normaliseLeaderboard()` turns these into canonical rows, the same raw → normalised split as `source_records`. SCA is not imported, so its filter shows an empty state.
+
+**Prototype:** `design/prototype/stats.html` (club stats, source filter, points table, paste/CSV import preview), homepage season leaders, and the "My stats" tab in `app-matches.html` all read that file. Run the logic tests with `node --test design/prototype/stats-data.test.js`.
 
 ## Design: adapter per source
 ```

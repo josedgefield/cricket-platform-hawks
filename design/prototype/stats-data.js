@@ -1,11 +1,8 @@
 /* Hawks CC — stats data + pure helpers for the prototype.
-   Mirrors the canonical model in docs/06: per-source rows, raw counts only,
-   derived rates computed here with the null rules, overs stored as balls.
-   Works in the browser (window.HawksStats) and in Node (require) for tests.
-
-   ⚠ SAMPLE DATA. CricHeroes blocks automated access (Cloudflare 403, Oct 2026),
-   so no real figures are loaded. Replace via the CSV import on stats.html or by
-   editing ROWS below with figures copied from the sources. */
+   Mirrors docs/06: raw source extracts are kept as captured, then normalised
+   into per-source canonical rows; derived rates are computed with the null
+   rules; overs are stored as balls. Missing values stay null — never inferred.
+   Works in the browser (window.HawksStats) and in Node (require) for tests. */
 (function (root) {
   'use strict';
 
@@ -14,21 +11,19 @@
       id: 'sca',
       label: 'SCA',
       name: 'SCA Club League',
-      competition: 'SCA Div 2 · 2026',
+      competition: 'SCA Club League',
       method: 'CSV/Excel export upload',
-      url: null,
-      lastSynced: null,
-      sample: true
+      status: 'none',
+      lastSynced: null
     },
     cricheroes: {
       id: 'cricheroes',
       label: 'CricHeroes',
       name: 'CricHeroes',
-      competition: 'BPL 2025',
-      method: 'CSV copied from CricHeroes (automated access blocked)',
+      competition: 'BPL 2025 · Supreme group',
+      method: 'Leaderboard + points table PDFs, transcribed by hand (automated access is blocked)',
       teamId: '10178708',
       tournamentId: '1500354',
-      url: 'https://cricheroes.com/team-profile/10178708/hawks-cc/leaderboard',
       links: {
         members: 'https://cricheroes.com/team-profile/10178708/hawks-cc/members',
         matches: 'https://cricheroes.com/team-profile/10178708/hawks-cc/matches',
@@ -36,47 +31,78 @@
         tournamentMatches: 'https://cricheroes.com/tournament/1500354/bpl-2025/matches/past-matches',
         pointsTable: 'https://cricheroes.com/tournament/1500354/bpl-2025/point-table'
       },
-      lastSynced: null,
-      sample: true
+      status: 'partial',
+      lastSynced: '2026-10-04',
+      limits: 'Leaderboards list the top 10 per tab and give rates without the underlying balls, not-outs or runs conceded.'
     }
   };
 
-  // Source name → member display name. Unmatched names are flagged, never auto-created.
-  var ALIASES = {
-    'arjun menon': 'Arjun M.', 'arjun m': 'Arjun M.',
-    'kiran patel': 'Kiran P.', 'kiran p': 'Kiran P.',
-    'daniel tan': 'Daniel T.', 'daniel t': 'Daniel T.',
-    'sam wilson': 'Sam W.', 'sam w': 'Sam W.',
-    'rohit iyer': 'Rohit I.', 'rohit i': 'Rohit I.',
-    'farhan ali': 'Farhan A.', 'farhan a': 'Farhan A.'
+  /* ---------- Raw extracts (as captured; do not edit to "fix" values) ----------
+     Source: CricHeroes PDF downloads of the Hawks CC team leaderboard
+     (hawks-cc-{batting,bowling,fielding}-leaderboard.pdf) and BPL 2025 points
+     table (points_table_BPL_2025.pdf), supplied by the club on 2026-10-04.
+     The PDFs are images, so values were transcribed visually. Columns are
+     exactly those printed; anything not printed is not here. */
+  var RAW_CRICHEROES = {
+    capturedOn: '2026-10-04',
+    // [player, Inn, Runs, Avg, SR]
+    batting: [
+      ['Sandeep Chandrasekharan Nair Roja', 4, 149, '49.67', '131.86'],
+      ['Nishaanth Sivakumar', 4, 109, '36.33', '136.25'],
+      ['Shashank Patwal', 4, 81, '20.25', '112.50'],
+      ['Sanyam Makkar', 1, 70, '70.00', '148.94'],
+      ['Hardik Shelat', 3, 64, '64.00', '193.94'],
+      ['Vishal', 4, 56, '14.00', '72.73'],
+      ['Cheeyanna Sunny', 2, 52, '52.00', '208.00'],
+      ['Girish Balaraman', 3, 43, '14.33', '51.81'],
+      ['Aditya Chandrasekhar', 3, 39, '13.00', '108.33'],
+      ['Puttur Thejas', 4, 37, '18.50', '112.12']
+    ],
+    // [player, Inn, W, Eco, Avg]  ("Dots" is printed but empty)
+    bowling: [
+      ['Puttur Shreyas', 5, 13, '3.64', '5.92'],
+      ['Hardik Shelat', 3, 9, '5.55', '6.78'],
+      ['Shashank Patwal', 5, 7, '4.75', '12'],
+      ['Puttur Thejas', 4, 4, '4.67', '17.5'],
+      ['Anvay Kokate', 3, 4, '6.62', '13.25'],
+      ['Avinash Kumar Singh', 4, 3, '8.00', '32'],
+      ['Alpin Mehta', 1, 2, '4.50', '9'],
+      ['Cheeyanna Sunny', 2, 2, '6.33', '28.5'],
+      ['Sachin Padghan', 1, 1, '5.67', '17'],
+      ['Nishaanth Sivakumar', 2, 1, '6.25', '25']
+    ],
+    // [player, Mat, Dismissal, Catches, R/O]  (stumpings are not printed)
+    fielding: [
+      ['Nishaanth Sivakumar', 5, 7, 0, 0],
+      ['Puttur Shreyas', 7, 7, 7, 0],
+      ['Anvay Kokate', 7, 4, 3, 1],
+      ['Shashank Patwal', 7, 4, 4, 0],
+      ['Sandeep Chandrasekharan Nair Roja', 4, 2, 1, 0],
+      ['Vishal', 4, 2, 2, 0],
+      ['Girish Balaraman', 5, 2, 1, 0],
+      ['Puttur Thejas', 7, 2, 2, 0],
+      ['Rahul Singh', 1, 1, 1, 0],
+      ['Cheeyanna Sunny', 2, 1, 1, 0]
+    ]
   };
-
-  // One row per player per source. null = the source didn't record it.
-  // bat: mat, inns, no, runs, balls, hs, fours, sixes · bowl: balls, runs, wkts, maidens · field: ct, st, ro
-  var ROWS = [
-    { player: 'Arjun M.', source: 'sca', bat: { mat: 8, inns: 8, no: 1, runs: 341, balls: 262, hs: 71, fours: 34, sixes: 9 }, bowl: { balls: 48, runs: 51, wkts: 3, maidens: 0 }, field: { ct: null, st: 0, ro: null } },
-    { player: 'Arjun M.', source: 'cricheroes', bat: { mat: 4, inns: 4, no: 0, runs: 171, balls: 127, hs: 58, fours: 16, sixes: 6 }, bowl: { balls: 36, runs: 40, wkts: 6, maidens: 0 }, field: { ct: 2, st: 0, ro: 1 } },
-    { player: 'Kiran P.', source: 'sca', bat: { mat: 8, inns: 5, no: 2, runs: 64, balls: 70, hs: 22, fours: 5, sixes: 1 }, bowl: { balls: 342, runs: 268, wkts: 18, maidens: 4 }, field: { ct: 3, st: 0, ro: 0 } },
-    { player: 'Kiran P.', source: 'cricheroes', bat: { mat: 4, inns: 2, no: 1, runs: 19, balls: 15, hs: 14, fours: 2, sixes: 0 }, bowl: { balls: 96, runs: 78, wkts: 9, maidens: 1 }, field: { ct: 1, st: 0, ro: 0 } },
-    { player: 'Daniel T.', source: 'sca', bat: { mat: 7, inns: 7, no: 1, runs: 236, balls: 158, hs: 64, fours: 21, sixes: 12 }, bowl: { balls: null, runs: null, wkts: null, maidens: null }, field: { ct: 4, st: 0, ro: null } },
-    { player: 'Daniel T.', source: 'cricheroes', bat: { mat: 4, inns: 4, no: 1, runs: 132, balls: 90, hs: 47, fours: 11, sixes: 7 }, bowl: { balls: 12, runs: 19, wkts: 0, maidens: 0 }, field: { ct: 2, st: 0, ro: 0 } },
-    { player: 'Sam W.', source: 'sca', bat: { mat: 8, inns: 6, no: 1, runs: 118, balls: 121, hs: 37, fours: 10, sixes: 2 }, bowl: { balls: 0, runs: 0, wkts: 0, maidens: 0 }, field: { ct: 9, st: 4, ro: 0 } },
-    { player: 'Sam W.', source: 'cricheroes', bat: { mat: 4, inns: 3, no: 0, runs: 41, balls: 44, hs: 25, fours: 3, sixes: 1 }, bowl: { balls: 0, runs: 0, wkts: 0, maidens: 0 }, field: { ct: 4, st: 2, ro: 0 } },
-    { player: 'Rohit I.', source: 'sca', bat: { mat: 6, inns: 5, no: 0, runs: 97, balls: null, hs: 31, fours: null, sixes: null }, bowl: { balls: 210, runs: 201, wkts: 9, maidens: 1 }, field: { ct: 2, st: 0, ro: 0 } },
-    { player: 'Farhan A.', source: 'cricheroes', bat: { mat: 3, inns: 2, no: 1, runs: 12, balls: 10, hs: 9, fours: 1, sixes: 0 }, bowl: { balls: 66, runs: 61, wkts: 5, maidens: 0 }, field: { ct: 0, st: 0, ro: 0 } }
-  ];
 
   var POINTS_TABLE = {
     source: 'cricheroes',
     competition: 'BPL 2025',
-    sample: true,
-    // nrr is kept as the source's string; we never recompute it.
+    group: 'Supreme (league matches)',
+    capturedOn: '2026-10-04',
+    // Order, NRR, For/Against and Last 5 are kept exactly as CricHeroes prints them.
     rows: [
-      { team: 'Hawks CC', mat: 5, won: 4, lost: 1, nr: 0, pts: 8, nrr: '+1.214' },
-      { team: 'Raffles Ravens', mat: 5, won: 3, lost: 2, nr: 0, pts: 6, nrr: '+0.402' },
-      { team: 'Tanjong Tigers', mat: 5, won: 3, lost: 2, nr: 0, pts: 6, nrr: '+0.118' },
-      { team: 'Kallang Kings', mat: 5, won: 2, lost: 2, nr: 1, pts: 5, nrr: null },
-      { team: 'Marina Mariners', mat: 5, won: 0, lost: 4, nr: 1, pts: 1, nrr: '-1.733' }
+      { team: 'Hawks CC', mat: 8, won: 5, lost: 0, drawn: 0, tied: 0, nr: 3, nrr: '2.529', for: '912/123.3', against: '607/125', pts: 27, last5: 'W-W-W-W-W', hawks: true },
+      { team: 'HP', mat: 9, won: 5, lost: 2, drawn: 0, tied: 0, nr: 2, nrr: '1.085', for: '1227/171.4', against: '1061/175', pts: 24, last5: 'L-W-W-W-L' },
+      { team: 'Chargers Cricket Club', mat: 8, won: 6, lost: 2, drawn: 0, tied: 0, nr: 0, nrr: '0.668', for: '1269/177.4', against: '1227/189.3', pts: 24, last5: 'L-W-W-L-W' },
+      { team: 'Elite Mavericks', mat: 8, won: 5, lost: 3, drawn: 0, tied: 0, nr: 0, nrr: '0.146', for: '1395/193', against: '1381/195', pts: 21, last5: 'L-W-W-W-W' },
+      { team: 'Glorious Cricket Club', mat: 7, won: 4, lost: 3, drawn: 0, tied: 0, nr: 0, nrr: '-0.506', for: '934/146.1', against: '1024/148.3', pts: 16, last5: 'W-W-W-L-W' },
+      { team: 'Legends X1', mat: 8, won: 3, lost: 4, drawn: 0, tied: 0, nr: 1, nrr: '-0.033', for: '1114/175', against: '1059/165.3', pts: 15, last5: 'L-W-L-W-W' },
+      { team: 'Cracking Willows', mat: 8, won: 3, lost: 5, drawn: 0, tied: 0, nr: 0, nrr: '-1.091', for: '1024/197.1', against: '1061/168.5', pts: 12, last5: 'L-W-L-L-L' },
+      { team: 'Misfits Cricket', mat: 8, won: 2, lost: 5, drawn: 0, tied: 0, nr: 1, nrr: '-1.215', for: '956/145.1', against: '1122/143.5', pts: 10, last5: 'W-L-L-W-L' },
+      { team: 'Grab Cricket Club', mat: 8, won: 2, lost: 6, drawn: 0, tied: 0, nr: 0, nrr: '-0.661', for: '1069/194.4', against: '1213/197.1', pts: 8, last5: 'L-W-L-L-L' },
+      { team: 'Uttarakhand Cricket Club', mat: 8, won: 1, lost: 6, drawn: 0, tied: 0, nr: 1, nrr: '-1.278', for: '832/160.4', against: '977/151.2', pts: 6, last5: 'L-L-L-L-L' }
     ]
   };
 
@@ -104,7 +130,65 @@
     return (a / b) * (mult || 1);
   }
 
-  // Derived stats, per docs/06 null rules.
+  function numOrNull(raw) {
+    var s = String(raw === undefined || raw === null ? '' : raw).trim();
+    return s === '' || s === '-' || s === '—' || isNaN(Number(s)) ? null : Number(s);
+  }
+
+  /* ---------- canonical rows ---------- */
+
+  var FIELDS = {
+    bat: ['inns', 'no', 'runs', 'balls', 'fours', 'sixes'],
+    bowl: ['inns', 'balls', 'runs', 'wkts', 'maidens'],
+    field: ['ct', 'st', 'ro', 'dis']
+  };
+  var RATES = ['batAvg', 'sr', 'econ', 'bowlAvg'];
+
+  function emptyRow(player, source) {
+    var r = { player: player, source: source, mat: null, bat: { hs: null }, bowl: {}, field: {}, reported: {} };
+    Object.keys(FIELDS).forEach(function (g) { FIELDS[g].forEach(function (k) { r[g][k] = null; }); });
+    RATES.forEach(function (k) { r.reported[k] = null; });
+    return r;
+  }
+
+  // Raw leaderboard extract → canonical rows. Source rates go to `reported`
+  // untouched; counts the source didn't print stay null.
+  function normaliseLeaderboard(raw, source) {
+    var by = {}, order = [];
+    function row(name) {
+      if (!by[name]) { by[name] = emptyRow(name, source); order.push(name); }
+      return by[name];
+    }
+    raw.batting.forEach(function (x) {
+      var r = row(x[0]);
+      r.bat.inns = x[1]; r.bat.runs = x[2];
+      r.reported.batAvg = numOrNull(x[3]); r.reported.sr = numOrNull(x[4]);
+    });
+    raw.bowling.forEach(function (x) {
+      var r = row(x[0]);
+      r.bowl.inns = x[1]; r.bowl.wkts = x[2];
+      r.reported.econ = numOrNull(x[3]); r.reported.bowlAvg = numOrNull(x[4]);
+    });
+    raw.fielding.forEach(function (x) {
+      var r = row(x[0]);
+      r.mat = x[1]; r.field.dis = x[2]; r.field.ct = x[3]; r.field.ro = x[4];
+    });
+    return order.map(function (n) { return by[n]; });
+  }
+
+  var ROWS = normaliseLeaderboard(RAW_CRICHEROES, 'cricheroes');
+
+  // Source name → display name. Seeded from names seen in source data; anything
+  // else from an import goes to the mapping queue and is never auto-created.
+  function aliasKey(name) { return String(name).toLowerCase().replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim(); }
+  var ALIASES = {};
+  ROWS.forEach(function (r) { ALIASES[aliasKey(r.player)] = r.player; });
+
+  function matchMember(name) { return ALIASES[aliasKey(name)] || null; }
+
+  /* ---------- derived + combined ---------- */
+
+  // Computed from counts, per docs/06 null rules.
   function derive(t) {
     var dismissals = isNum(t.bat.inns) && isNum(t.bat.no) ? t.bat.inns - t.bat.no : null;
     return {
@@ -117,52 +201,42 @@
     };
   }
 
-  // Combine rows. A sum is null if ANY contributing source lacks the value:
+  // A sum is null if ANY contributing source lacks the value:
   // a partial total would look complete and be wrong.
-  function sumField(rows, group, key) {
+  function sumOf(rows, get) {
+    if (!rows.length) return null;
     var total = 0;
     for (var i = 0; i < rows.length; i++) {
-      var v = rows[i][group] ? rows[i][group][key] : null;
+      var v = get(rows[i]);
       if (!isNum(v)) return null;
       total += v;
     }
-    return rows.length ? total : null;
+    return total;
   }
-
-  function maxField(rows, group, key) {
-    var best = null;
-    for (var i = 0; i < rows.length; i++) {
-      var v = rows[i][group] ? rows[i][group][key] : null;
-      if (!isNum(v)) return null;
-      best = best === null ? v : Math.max(best, v);
-    }
-    return best;
-  }
-
-  var FIELDS = {
-    bat: ['mat', 'inns', 'no', 'runs', 'balls', 'fours', 'sixes'],
-    bowl: ['balls', 'runs', 'wkts', 'maidens'],
-    field: ['ct', 'st', 'ro']
-  };
 
   function combine(rows) {
-    var out = { bat: {}, bowl: {}, field: {}, sources: [] };
+    var out = { bat: {}, bowl: {}, field: {}, reported: {}, sources: [] };
+    out.mat = sumOf(rows, function (r) { return r.mat; });
     Object.keys(FIELDS).forEach(function (g) {
-      FIELDS[g].forEach(function (k) { out[g][k] = sumField(rows, g, k); });
+      FIELDS[g].forEach(function (k) { out[g][k] = sumOf(rows, function (r) { return r[g][k]; }); });
     });
-    out.bat.hs = maxField(rows, 'bat', 'hs');
+    var hs = sumOf(rows, function (r) { return r.bat.hs; }) === null ? null : Math.max.apply(null, rows.map(function (r) { return r.bat.hs; }));
+    out.bat.hs = hs;
+    // A source's own rate is only meaningful for that source alone.
+    RATES.forEach(function (k) { out.reported[k] = rows.length === 1 ? rows[0].reported[k] : null; });
     rows.forEach(function (r) { if (out.sources.indexOf(r.source) < 0) out.sources.push(r.source); });
     return out;
   }
 
-  // Players × chosen sources → [{ player, sources, bat, bowl, field, d }]
+  // Players × chosen sources → [{ player, sources, mat, bat, bowl, field, reported, d }]
   function table(rows, sourceFilter) {
-    var by = {};
+    var by = {}, order = [];
     rows.forEach(function (r) {
       if (sourceFilter && sourceFilter !== 'all' && r.source !== sourceFilter) return;
-      (by[r.player] = by[r.player] || []).push(r);
+      if (!by[r.player]) { by[r.player] = []; order.push(r.player); }
+      by[r.player].push(r);
     });
-    return Object.keys(by).map(function (p) {
+    return order.map(function (p) {
       var c = combine(by[p]);
       c.player = p;
       c.d = derive(c);
@@ -170,9 +244,42 @@
     });
   }
 
+  // Our calculation when the counts exist, otherwise the source's own figure.
+  function rate(r, key) {
+    if (isNum(r.d[key])) return { v: r.d[key], reported: false };
+    if (isNum(r.reported[key])) return { v: r.reported[key], reported: true };
+    return { v: null, reported: false };
+  }
+
+  function dismissals(r) {
+    if (isNum(r.field.dis)) return r.field.dis;
+    return isNum(r.field.ct) && isNum(r.field.st) ? r.field.ct + r.field.st : null;
+  }
+
   function fmt(v, dp) {
     if (!isNum(v)) return '—';
     return dp ? v.toFixed(dp) : String(v);
+  }
+
+  // Leaders for the website. Ties are returned together; nulls never lead.
+  function leaders(t, opts) {
+    var minInns = (opts && opts.minSrInns) || 3;
+    function top(list, get) {
+      var best = null, who = [];
+      list.forEach(function (r) {
+        var v = get(r);
+        if (!isNum(v)) return;
+        if (best === null || v > best) { best = v; who = [r]; } else if (v === best) who.push(r);
+      });
+      return best === null ? null : { value: best, rows: who };
+    }
+    return {
+      runs: top(t, function (r) { return r.bat.runs; }),
+      wkts: top(t, function (r) { return r.bowl.wkts; }),
+      sr: top(t.filter(function (r) { return isNum(r.bat.inns) && r.bat.inns >= minInns; }), function (r) { return rate(r, 'sr').v; }),
+      dis: top(t, dismissals),
+      minSrInns: minInns
+    };
   }
 
   /* ---------- CSV import (CricHeroes leaderboard copied/exported as CSV) ---------- */
@@ -200,47 +307,40 @@
     return rows;
   }
 
-  // Header aliases per leaderboard tab. Source rates (Avg, SR, Econ) are only used
-  // to cross-check our own calculation, never stored.
+  // Header aliases per leaderboard tab → [group, field]. Rates go to `reported`.
   var HEADERS = {
     batting: {
       player: ['player', 'name', 'player name', 'batter'],
-      mat: ['mat', 'm', 'matches'], inns: ['inns', 'innings', 'inn'], no: ['no', 'not out', 'not outs'],
-      runs: ['runs', 'r'], balls: ['balls', 'b', 'bf', 'balls faced'], hs: ['hs', 'highest', 'highest score', 'best'],
-      fours: ['4s', 'fours'], sixes: ['6s', 'sixes'],
-      _avg: ['avg', 'average'], _sr: ['sr', 'strike rate']
+      mat: ['mat', 'm', 'matches'],
+      'bat.inns': ['inns', 'innings', 'inn'], 'bat.no': ['no', 'not out', 'not outs'],
+      'bat.runs': ['runs', 'r'], 'bat.balls': ['balls', 'b', 'bf', 'balls faced'], 'bat.hs': ['hs', 'highest', 'highest score', 'best'],
+      'bat.fours': ['4s', 'fours'], 'bat.sixes': ['6s', 'sixes'],
+      'reported.batAvg': ['avg', 'average'], 'reported.sr': ['sr', 'strike rate']
     },
     bowling: {
       player: ['player', 'name', 'player name', 'bowler'],
-      mat: ['mat', 'matches'], overs: ['overs', 'o', 'ov'], balls: ['balls', 'b'],
-      maidens: ['maidens', 'mdns', 'md'], runs: ['runs', 'r', 'runs conceded'], wkts: ['wkts', 'w', 'wickets'],
-      _econ: ['econ', 'economy', 'eco']
+      mat: ['mat', 'matches'],
+      'bowl.inns': ['inns', 'innings', 'inn'], overs: ['overs', 'o', 'ov'], 'bowl.balls': ['balls', 'b'],
+      'bowl.maidens': ['maidens', 'mdns', 'md'], 'bowl.runs': ['runs', 'r', 'runs conceded'], 'bowl.wkts': ['wkts', 'w', 'wickets'],
+      'reported.econ': ['econ', 'economy', 'eco'], 'reported.bowlAvg': ['avg', 'average']
     },
     fielding: {
       player: ['player', 'name', 'player name', 'fielder'],
-      mat: ['mat', 'm', 'matches'], ct: ['ct', 'catches', 'c'], st: ['st', 'stumpings'], ro: ['ro', 'run outs', 'run out', 'runouts']
+      mat: ['mat', 'm', 'matches'],
+      'field.ct': ['ct', 'catches', 'c'], 'field.st': ['st', 'stumpings'],
+      'field.ro': ['ro', 'r/o', 'run outs', 'run out', 'runouts'], 'field.dis': ['dismissal', 'dismissals', 'dis']
     }
   };
 
   function intOrNull(raw, key, warn) {
     var s = String(raw === undefined ? '' : raw).trim();
     if (s === '' || s === '-' || s === '—') return null;
-    if (key === 'hs') s = s.replace(/\*$/, '');
-    if (!/^\d+$/.test(s)) { warn('“' + raw + '” is not a whole number for ' + key + ' (left blank)'); return null; }
+    if (key === 'bat.hs') s = s.replace(/\*$/, '');
+    if (!/^\d+$/.test(s)) { warn('“' + raw + '” is not a whole number for ' + key.split('.').pop() + ' (left blank)'); return null; }
     return Number(s);
   }
 
-  function numOrNull(raw) {
-    var s = String(raw === undefined ? '' : raw).trim();
-    return s === '' || s === '-' || isNaN(Number(s)) ? null : Number(s);
-  }
-
-  function matchMember(name) {
-    var k = String(name).toLowerCase().replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
-    return ALIASES[k] || null;
-  }
-
-  // Returns { rows: [{ sourceName, player|null, kind, values, warnings }], errors: [] }
+  // Returns { rows: [{ sourceName, player|null, kind, values: {'bat.runs': 12, ...}, warnings, duplicate }], errors }
   function importLeaderboard(text, kind) {
     var spec = HEADERS[kind];
     if (!spec) return { rows: [], errors: ['Unknown tab “' + kind + '”'] };
@@ -261,58 +361,55 @@
       var sourceName = String(get('player') || '').trim();
       var v = {};
       Object.keys(spec).forEach(function (k) {
-        if (k === 'player' || k === 'overs' || k[0] === '_') return;
-        v[k] = col[k] === undefined ? null : intOrNull(get(k), k, warn);
+        if (k === 'player' || k === 'overs' || col[k] === undefined) return;
+        v[k] = k.indexOf('reported.') === 0 ? numOrNull(get(k)) : intOrNull(get(k), k, warn);
       });
-      if (kind === 'bowling' && v.balls === null && col.overs !== undefined) {
+      if (kind === 'bowling' && v['bowl.balls'] == null && col.overs !== undefined) {
         var b = oversToBalls(get('overs'));
         if (isNaN(b)) warn('Overs “' + get('overs') + '” is not valid (ball part must be 0–5)');
-        else v.balls = b;
+        else v['bowl.balls'] = b;
       }
-      // Cross-check source rates against our own calculation.
+      // Cross-check source rates against our own calculation where counts allow.
       if (kind === 'batting') {
-        var srcSr = numOrNull(get('_sr')), ourSr = ratio(v.runs, v.balls, 100);
-        if (srcSr !== null && ourSr !== null && Math.abs(srcSr - ourSr) > 0.6) warn('Source SR ' + srcSr + ' ≠ calculated ' + ourSr.toFixed(1));
+        var ourSr = ratio(v['bat.runs'], v['bat.balls'], 100);
+        if (v['reported.sr'] != null && ourSr !== null && Math.abs(v['reported.sr'] - ourSr) > 0.6) warn('Source SR ' + v['reported.sr'] + ' ≠ calculated ' + ourSr.toFixed(1));
       }
       if (kind === 'bowling') {
-        var srcEc = numOrNull(get('_econ')), ourEc = ratio(v.runs, v.balls, 6);
-        if (srcEc !== null && ourEc !== null && Math.abs(srcEc - ourEc) > 0.06) warn('Source econ ' + srcEc + ' ≠ calculated ' + ourEc.toFixed(2));
+        var ourEc = ratio(v['bowl.runs'], v['bowl.balls'], 6);
+        if (v['reported.econ'] != null && ourEc !== null && Math.abs(v['reported.econ'] - ourEc) > 0.06) warn('Source econ ' + v['reported.econ'] + ' ≠ calculated ' + ourEc.toFixed(2));
       }
       if (!sourceName) errors.push('Row ' + (n + 2) + ': no player name');
       var key = sourceName.toLowerCase();
-      if (seen[key]) warn('Duplicate of row ' + seen[key] + ' (later row ignored)');
+      var duplicate = !!seen[key];
+      if (duplicate) warn('Duplicate of row ' + seen[key] + ' (this row is ignored)');
       else seen[key] = n + 2;
-      return { sourceName: sourceName, player: matchMember(sourceName), kind: kind, values: v, warnings: warnings, duplicate: seen[key] !== n + 2 };
+      return { sourceName: sourceName, player: matchMember(sourceName), kind: kind, values: v, warnings: warnings, duplicate: duplicate };
     }).filter(function (r) { return r.sourceName; });
     return { rows: rows, errors: errors };
   }
 
-  // Apply matched, non-duplicate import rows for one tab onto a source's rows.
-  // Returns a new ROWS array; the original is untouched.
+  // Apply matched, non-duplicate import rows onto a source's rows.
+  // Only columns present in the import are written. Returns a new array.
   function applyImport(rows, imported, source) {
-    var groupFor = { batting: 'bat', bowling: 'bowl', fielding: 'field' };
     var out = rows.map(function (r) { return JSON.parse(JSON.stringify(r)); });
     imported.forEach(function (ir) {
       if (!ir.player || ir.duplicate) return;
-      var g = groupFor[ir.kind];
       var target = out.filter(function (r) { return r.player === ir.player && r.source === source; })[0];
-      if (!target) {
-        target = { player: ir.player, source: source, bat: {}, bowl: {}, field: {} };
-        FIELDS.bat.concat(['hs']).forEach(function (k) { target.bat[k] = null; });
-        FIELDS.bowl.forEach(function (k) { target.bowl[k] = null; });
-        FIELDS.field.forEach(function (k) { target.field[k] = null; });
-        out.push(target);
-      }
-      Object.keys(ir.values).forEach(function (k) { if (k !== 'mat') target[g][k] = ir.values[k]; });
-      if (ir.kind === 'batting' && ir.values.mat !== undefined) target.bat.mat = ir.values.mat;
+      if (!target) { target = emptyRow(ir.player, source); out.push(target); }
+      Object.keys(ir.values).forEach(function (k) {
+        var p = k.split('.');
+        if (p.length === 1) target[p[0]] = ir.values[k];
+        else target[p[0]][p[1]] = ir.values[k];
+      });
     });
     return out;
   }
 
   var api = {
-    SOURCES: SOURCES, ROWS: ROWS, POINTS_TABLE: POINTS_TABLE, ALIASES: ALIASES,
-    oversToBalls: oversToBalls, ballsToOvers: ballsToOvers, derive: derive, combine: combine,
-    table: table, fmt: fmt, parseCsv: parseCsv, importLeaderboard: importLeaderboard,
+    SOURCES: SOURCES, RAW_CRICHEROES: RAW_CRICHEROES, ROWS: ROWS, POINTS_TABLE: POINTS_TABLE, ALIASES: ALIASES,
+    oversToBalls: oversToBalls, ballsToOvers: ballsToOvers, derive: derive, combine: combine, table: table,
+    rate: rate, dismissals: dismissals, leaders: leaders, fmt: fmt, emptyRow: emptyRow,
+    normaliseLeaderboard: normaliseLeaderboard, parseCsv: parseCsv, importLeaderboard: importLeaderboard,
     applyImport: applyImport, matchMember: matchMember
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

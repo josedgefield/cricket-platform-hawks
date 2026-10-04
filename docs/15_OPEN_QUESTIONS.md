@@ -22,6 +22,8 @@ Status key: ❓ open · ◐ partly answered · ✅ answered
 | Q4 ❓ | **SCA data:** does the club have a portal login? Which exports are available (fixtures, scorecards, player stats)? | Phase 3 | Adapter design |
 | Q5 ◐ | **BPL and IAT30:** who runs them, and where do fixtures and stats live? **BPL is on CricHeroes** (tournament 1500354, Hawks team 10178708). IAT30 is still unknown: is it on CricHeroes too? | Phase 3 | Adapter design |
 | Q19 ❓ | **CricHeroes access:** will CricHeroes or the BPL organiser provide an authorised export or API? Their site blocks automated requests (Cloudflare 403). Until then, a stats admin pastes or uploads leaderboard tables by hand. | Phase 3 automation | Decides manual vs automated sync for BPL |
+| Q21 ❓ | **Does the CricHeroes team leaderboard cover only BPL 2025,** or every Hawks match on CricHeroes (e.g. friendlies or other tournaments)? The site currently labels it "BPL 2025". | Phase 3 | Competition attribution |
+| Q22 ❓ | **Public website consent:** stats pages show players' full CricHeroes names. Confirm this is OK for the public site, or use the planned per-player name opt-in (`docs/10`). | Public launch | PDPA |
 | Q20 ❓ | **Player name mapping:** please share each player's CricHeroes display name (from the members page), so they can be mapped to members | Phase 3 | `player_aliases` seed |
 | Q6 ❓ | **Role holders:** treasurer, captain(s), stats admin, comms admin, club admins (≥ 2 for the two-person rule) | Phase 0 | Seeding roles |
 
