@@ -148,6 +148,8 @@ public final class LeaderboardCsvParser {
                 try {
                     values.put(StatColumn.BOWL_BALLS, Overs.toBalls(cell(cells, col.get(OVERS))));
                 } catch (IllegalArgumentException ex) {
+                    // Printed but unusable: keep it as a known blank so it isn't recovered from Econ.
+                    values.put(StatColumn.BOWL_BALLS, null);
                     warnings.add(ex.getMessage() + "; balls left blank");
                 }
             }
