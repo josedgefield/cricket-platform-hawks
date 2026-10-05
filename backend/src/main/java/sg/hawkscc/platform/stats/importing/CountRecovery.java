@@ -14,7 +14,9 @@ import sg.hawkscc.platform.stats.domain.StatKind;
  * published, rounded to the decimals it printed. Example: 149 runs at SR 131.86 can only be
  * 113 balls. If no value or several values fit (an average printed as "12" fits several run
  * totals), the count stays unknown. This recovers what the source already implies; it never
- * estimates. Recovered columns are recorded so the API can say so.
+ * estimates. Only columns the source didn't print at all are filled: a printed value that was
+ * blank or rejected as invalid (e.g. overs "4.7") stays unknown. Recovered columns are recorded
+ * so the API can say so.
  */
 final class CountRecovery {
 
@@ -30,26 +32,26 @@ final class CountRecovery {
         if (kind == StatKind.BATTING) {
             Integer runs = integer(v, StatColumn.BAT_RUNS);
             BigDecimal sr = decimal(v, StatColumn.REPORTED_BAT_SR);
-            if (v.get(StatColumn.BAT_BALLS) == null && runs != null && runs > 0 && positive(sr)) {
+            if (!v.containsKey(StatColumn.BAT_BALLS) && runs != null && runs > 0 && positive(sr)) {
                 Integer balls = unique(1, MAX_COUNT, b -> fits(sr, (long) runs * 100, b));
                 put(v, StatColumn.BAT_BALLS, balls, recovered);
             }
             Integer inns = integer(v, StatColumn.BAT_INNS);
             BigDecimal avg = decimal(v, StatColumn.REPORTED_BAT_AVG);
-            if (v.get(StatColumn.BAT_NOT_OUTS) == null && inns != null && runs != null && runs > 0 && positive(avg)) {
+            if (!v.containsKey(StatColumn.BAT_NOT_OUTS) && inns != null && runs != null && runs > 0 && positive(avg)) {
                 Integer dismissals = unique(1, inns, d -> fits(avg, runs, d));
                 put(v, StatColumn.BAT_NOT_OUTS, dismissals == null ? null : inns - dismissals, recovered);
             }
         } else if (kind == StatKind.BOWLING) {
             Integer wickets = integer(v, StatColumn.BOWL_WICKETS);
             BigDecimal avg = decimal(v, StatColumn.REPORTED_BOWL_AVG);
-            if (v.get(StatColumn.BOWL_RUNS) == null && wickets != null && wickets > 0 && positive(avg)) {
+            if (!v.containsKey(StatColumn.BOWL_RUNS) && wickets != null && wickets > 0 && positive(avg)) {
                 Integer runs = unique(0, MAX_COUNT, r -> fits(avg, r, wickets));
                 put(v, StatColumn.BOWL_RUNS, runs, recovered);
             }
             Integer runs = integer(v, StatColumn.BOWL_RUNS);
             BigDecimal econ = decimal(v, StatColumn.REPORTED_ECON);
-            if (v.get(StatColumn.BOWL_BALLS) == null && runs != null && runs > 0 && positive(econ)) {
+            if (!v.containsKey(StatColumn.BOWL_BALLS) && runs != null && runs > 0 && positive(econ)) {
                 Integer balls = unique(1, MAX_COUNT, b -> fits(econ, (long) runs * 6, b));
                 put(v, StatColumn.BOWL_BALLS, balls, recovered);
             }

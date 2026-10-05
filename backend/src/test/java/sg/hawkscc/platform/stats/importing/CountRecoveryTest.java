@@ -56,6 +56,14 @@ class CountRecoveryTest {
     }
 
     @Test
+    void aPrintedButInvalidCountStaysUnknown() {
+        // Overs printed as "4.7" are rejected, leaving balls null; that is not the same as "not printed".
+        var v = values(StatColumn.BOWL_BALLS, null, StatColumn.BOWL_RUNS, 18, StatColumn.REPORTED_ECON, "4.50");
+        assertThat(CountRecovery.recover(StatKind.BOWLING, v)).isEmpty();
+        assertThat(v).containsEntry(StatColumn.BOWL_BALLS, null);
+    }
+
+    @Test
     void zeroRunsCanNotBeRecovered() {
         var v = values(StatColumn.BAT_INNS, 1, StatColumn.BAT_RUNS, 0, StatColumn.REPORTED_BAT_SR, "0.00");
         assertThat(CountRecovery.recover(StatKind.BATTING, v)).isEmpty();
