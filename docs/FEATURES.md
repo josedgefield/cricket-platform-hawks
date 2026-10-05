@@ -39,15 +39,15 @@ progress reports themselves live in the Obsidian vault, not in this repo.
 | 9 | Excel import of members and opening balances | 1 | docs/11 | Blocked | Masked Excel sample (Q1) |
 | 10 | Bank statement matching | 1 | FI-7 | Blocked | Which bank (Q3) |
 | 11 | Finance reports and payment reminders | 1 | FI-10, FI-11 | Not started | — |
-| 12 | Fixtures and results | 2 | CR-1 | Not started | Where fixtures come from |
+| 12 | Fixtures and results | 2 | CR-1 | Not started | SCA results/fixtures pages are public HTML (docs/06); fetching allowed? (Q4) |
 | 13 | Availability and XI selection | 2 | CR-2, CR-3 | Not started | — |
 | 14 | Announcements with replies and reactions | 2 | CO-1, CO-2 | Not started | — |
 | 15 | Push and email notifications, with preferences | 2 | CO-3 | Not started | — |
-| 16 | Stats import, API and app Stats tab | 3 | CR-4, CR-5, CR-6 | Partly done | Bundled data is BPL 2025 only |
+| 16 | Stats import, API and app Stats tab | 3 | CR-4, CR-5, CR-6 | Partly done | BPL 2025 + SCA Div 3 2025 bundled and added up per player; admin import UI not built |
 | 17 | Stats import screen with preview | 3 | CR-5 | Not started | — |
-| 18 | Link one player's names across sources | 3 | CR-4 | Not started | — |
+| 18 | Link one player's names across sources | 3 | CR-4 | Partly done | Links file + admin API done; no admin screen; Vishal link unconfirmed (Q23) |
 | 19 | Audited stats corrections | 3 | CR-7 | Not started | — |
-| 20 | SCA stats | 3 | CR-5 | Partly done | Imports work (copied tables, `backend/scripts/import-sca.sh`); data only in a local database, not bundled |
+| 20 | SCA stats | 3 | CR-5 | Done | Div 3 2025 bundled; updates are manual imports until Q4 decides on scheduled fetching |
 | 21 | Scheduled sync from export links | 3 | CR-5 | Blocked | SCA permission (Q19) |
 | 22 | Match scorecards, player profiles, charts | 3 | CR-4, CR-8 | Not started | Scorecards from SCA and CricHeroes |
 | 23 | Calendar feed and venue info | 4 | CO-4, CO-5 | Not started | — |

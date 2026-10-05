@@ -5,6 +5,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import sg.hawkscc.platform.stats.ConflictException;
 import sg.hawkscc.platform.stats.ImportRejectedException;
 import sg.hawkscc.platform.stats.NotFoundException;
 
@@ -19,6 +20,11 @@ class StatsErrorHandler {
         p.setTitle("Import rejected");
         p.setProperty("errors", e.errors());
         return p;
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    ProblemDetail conflict(ConflictException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
     }
 
     @ExceptionHandler(NotFoundException.class)

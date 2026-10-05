@@ -51,6 +51,10 @@ export type PlayerStats = {
   batting: Batting | null;
   bowling: Bowling | null;
   fielding: Fielding | null;
+  /** Counts recovered exactly from a published rate, as "batting.balls", "bowling.runs" etc. */
+  recovered: string[];
+  /** Which sources each category total adds up (a source may not list the player in every category). */
+  coverage: { batting: SourceCode[]; bowling: SourceCode[]; fielding: SourceCode[] };
 };
 
 export type SourceStatus = {

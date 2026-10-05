@@ -79,13 +79,25 @@ class StatsApiIntegrationTest {
 
     /** A fresh competition for a test that writes data. */
     private UUID newCompetition() {
+        return newCompetition("cricheroes");
+    }
+
+    private UUID newCompetition(String source) {
         String name = "Test " + UUID.randomUUID();
         http.post().uri("/api/admin/stats/competitions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(h -> h.setBasicAuth(adminUser, adminPassword))
-                .body(Map.of("source", "cricheroes", "name", name))
+                .body(Map.of("source", source, "name", name))
                 .retrieve().toBodilessEntity();
         return competition(name);
+    }
+
+    private int link(String player, String source, String sourceName) {
+        return http.post().uri("/api/admin/stats/player-links")
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(h -> h.setBasicAuth(adminUser, adminPassword))
+                .body(Map.of("player", player, "source", source, "sourceName", sourceName))
+                .exchange((req, res) -> res.getStatusCode().value());
     }
 
     private int importCsv(UUID competitionId, String kind, String csv, boolean authenticated) {
@@ -116,17 +128,68 @@ class StatsApiIntegrationTest {
         assertThat(sandeep.sources()).containsExactly("cricheroes");
         assertThat(sandeep.matches()).isEqualTo(4);
         assertThat(sandeep.batting().runs()).isEqualTo(149);
-        assertThat(sandeep.batting().balls()).isNull();
-        assertThat(sandeep.batting().strikeRate()).isEqualTo(new Rate(new BigDecimal("131.86"), true));
+        // Not printed, but exactly one value fits the published SR and average; marked as recovered.
+        assertThat(sandeep.batting().balls()).isEqualTo(113);
+        assertThat(sandeep.batting().notOuts()).isEqualTo(1);
+        assertThat(sandeep.recovered()).contains("batting.balls", "batting.notOuts");
+        assertThat(sandeep.batting().strikeRate()).isEqualTo(new Rate(new BigDecimal("131.86"), false));
         assertThat(sandeep.fielding().dismissals()).isEqualTo(2);
         assertThat(sandeep.fielding().stumpings()).isNull();
 
-        var shreyas = named(all, "Puttur Shreyas");
+        // Linked across sources, so shown under the name from player-links.csv.
+        var shreyas = named(all, "Shreyas Puttur");
         assertThat(shreyas.bowling().wickets()).isEqualTo(13);
-        assertThat(shreyas.batting()).isNull(); // not in the batting top 10: unknown, not zero
+        assertThat(shreyas.batting()).isNull(); // not in the BPL batting top 10: unknown, not zero
+
+        // An average printed as "12" fits several run totals, so those stay unknown.
+        var shashank = named(all, "Shashank Patwal");
+        assertThat(shashank.bowling().runs()).isNull();
+        assertThat(shashank.bowling().economy()).isEqualTo(new Rate(new BigDecimal("4.75"), true));
 
         assertThat(all).hasSize(16);
-        assertThat(players("sca", null)).isEmpty();
+    }
+
+    @Test
+    void seedLoadsScaFiguresAsPrinted() {
+        UUID sca = competition("SCA Club League 2025 - Division 3");
+        var all = players("sca", sca);
+        assertThat(all).hasSize(21);
+
+        var alok = named(all, "Alok Patra");
+        assertThat(alok.batting().runs()).isEqualTo(360);
+        assertThat(alok.batting().balls()).isEqualTo(316);
+        assertThat(alok.batting().strikeRate()).isEqualTo(new Rate(new BigDecimal("113.92"), false));
+        assertThat(alok.fielding().catches()).isEqualTo(4); // 0 catches + 4 as wicketkeeper
+        assertThat(alok.recovered()).isEmpty();
+
+        var alpin = named(all, "Alpin Mehta"); // "(hawks Club Admin)" dropped from the name
+        assertThat(alpin.bowling().wickets()).isEqualTo(14);
+        assertThat(alpin.bowling().balls()).isEqualTo(222);
+    }
+
+    @Test
+    void allSourcesAddUpCountsAndRecalculateRates() {
+        var all = players("all", null);
+
+        // Batting in both: SCA 225 off 174 + BPL 81 off 72 (recovered) = 306 off 246.
+        var shashank = named(all, "Shashank Patwal");
+        assertThat(shashank.sources()).containsExactlyInAnyOrder("sca", "cricheroes");
+        assertThat(shashank.batting().runs()).isEqualTo(306);
+        assertThat(shashank.batting().balls()).isEqualTo(246);
+        assertThat(shashank.batting().average()).isEqualTo(new Rate(new BigDecimal("21.86"), false));
+        assertThat(shashank.batting().strikeRate()).isEqualTo(new Rate(new BigDecimal("124.39"), false));
+        assertThat(shashank.coverage().batting()).containsExactlyInAnyOrder("sca", "cricheroes");
+
+        // Bowling in both: 296 + 77 runs, 305 + 127 balls, 11 + 13 wickets.
+        var shreyas = named(all, "Shreyas Puttur");
+        assertThat(shreyas.bowling().wickets()).isEqualTo(24);
+        assertThat(shreyas.bowling().balls()).isEqualTo(432);
+        assertThat(shreyas.bowling().economy()).isEqualTo(new Rate(new BigDecimal("5.18"), false));
+        // BPL doesn't list his batting, so the batting total is SCA's and says so.
+        assertThat(shreyas.batting().runs()).isEqualTo(70);
+        assertThat(shreyas.coverage().batting()).containsExactly("sca");
+
+        assertThat(all).extracting(StatsViews.PlayerStats::name).doesNotHaveDuplicates();
     }
 
     @Test
@@ -150,7 +213,7 @@ class StatsApiIntegrationTest {
                 .body(new ParameterizedTypeReference<>() {
                 });
         assertThat(sources).extracting(StatsViews.SourceStatus::source).containsExactly("sca", "cricheroes");
-        assertThat(sources.get(0).lastSucceededAt()).isNull();
+        assertThat(sources.get(0).lastSucceededAt()).isNotNull();
         assertThat(sources.get(1).lastSucceededAt()).isNotNull();
     }
 
@@ -223,6 +286,38 @@ class StatsApiIntegrationTest {
         int blocked = http.get().uri("/api/stats/sources").header("Origin", "https://evil.example")
                 .exchange((req, res) -> res.getStatusCode().value());
         assertThat(blocked).isEqualTo(403);
+    }
+
+    @Test
+    void linkingANameMovesItsFiguresOntoOnePlayer() {
+        UUID ch = newCompetition("cricheroes");
+        UUID sca = newCompetition("sca");
+        assertThat(importCsv(ch, "batting", "Player,Inn,NO,Runs,Balls\nLink Testone,2,0,30,20\n", true)).isEqualTo(200);
+        assertThat(importCsv(sca, "batting", "Player,Inn,NO,Runs,Balls\nTestone Link,3,1,50,40\n", true)).isEqualTo(200);
+        assertThat(players("all", null)).extracting(StatsViews.PlayerStats::name)
+                .contains("Link Testone", "Testone Link");
+
+        assertThat(link("Link Testone", "sca", "Testone Link")).isEqualTo(200);
+        assertThat(link("Link Testone", "sca", "Testone Link")).isEqualTo(200); // idempotent
+
+        var all = players("all", null);
+        assertThat(all).extracting(StatsViews.PlayerStats::name).doesNotContain("Testone Link");
+        var p = named(all, "Link Testone");
+        assertThat(p.sources()).containsExactlyInAnyOrder("cricheroes", "sca");
+        assertThat(p.batting().runs()).isEqualTo(80);
+        assertThat(p.batting().strikeRate()).isEqualTo(new Rate(new BigDecimal("133.33"), false));
+        assertThat(p.batting().average()).isEqualTo(new Rate(new BigDecimal("20.00"), false));
+    }
+
+    @Test
+    void linkingRefusesToDoubleCountACompetition() {
+        UUID ch = newCompetition("cricheroes");
+        assertThat(importCsv(ch, "batting", "Player,Runs\nDup Alpha\t1\nDup Beta,2\n".replace("\t", ","), true))
+                .isEqualTo(200);
+        // Both names have figures in the same competition: linking would count it twice.
+        assertThat(link("Dup Alpha", "cricheroes", "Dup Beta")).isEqualTo(409);
+        assertThat(players("cricheroes", ch)).extracting(StatsViews.PlayerStats::name)
+                .containsExactlyInAnyOrder("Dup Alpha", "Dup Beta");
     }
 
     @Test

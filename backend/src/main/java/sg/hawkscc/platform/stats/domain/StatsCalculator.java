@@ -26,27 +26,39 @@ public final class StatsCalculator {
         if (lines.size() == 1) {
             return lines.getFirst();
         }
-        var batting = new StatLine.Batting(
-                sum(lines, l -> l.batting().inns()),
-                sum(lines, l -> l.batting().notOuts()),
-                sum(lines, l -> l.batting().runs()),
-                sum(lines, l -> l.batting().balls()),
-                max(lines, l -> l.batting().highScore()),
-                sum(lines, l -> l.batting().fours()),
-                sum(lines, l -> l.batting().sixes()));
-        var bowling = new StatLine.Bowling(
-                sum(lines, l -> l.bowling().inns()),
-                sum(lines, l -> l.bowling().balls()),
-                sum(lines, l -> l.bowling().maidens()),
-                sum(lines, l -> l.bowling().runs()),
-                sum(lines, l -> l.bowling().wickets()));
-        var fielding = new StatLine.Fielding(
-                sum(lines, l -> l.fielding().catches()),
-                sum(lines, l -> l.fielding().stumpings()),
-                sum(lines, l -> l.fielding().runOuts()),
-                sum(lines, l -> l.fielding().dismissals()));
-        // One source's published rate is not the combined rate, so it is dropped.
-        return new StatLine(sum(lines, StatLine::matches), batting, bowling, fielding, StatLine.Reported.NONE);
+        // Per category, add up only the lines that list the player at all (a source that has no
+        // batting row for someone says nothing about their batting). Within those lines, a
+        // figure one of them lacks makes the total unknown: a partial sum would look complete.
+        List<StatLine> bat = lines.stream().filter(l -> !l.batting().isUnknown()).toList();
+        List<StatLine> bowl = lines.stream().filter(l -> !l.bowling().isUnknown()).toList();
+        List<StatLine> field = lines.stream().filter(l -> !l.fielding().isUnknown()).toList();
+        var batting = bat.isEmpty() ? StatLine.Batting.UNKNOWN : new StatLine.Batting(
+                sum(bat, l -> l.batting().inns()),
+                sum(bat, l -> l.batting().notOuts()),
+                sum(bat, l -> l.batting().runs()),
+                sum(bat, l -> l.batting().balls()),
+                max(bat, l -> l.batting().highScore()),
+                sum(bat, l -> l.batting().fours()),
+                sum(bat, l -> l.batting().sixes()));
+        var bowling = bowl.isEmpty() ? StatLine.Bowling.UNKNOWN : new StatLine.Bowling(
+                sum(bowl, l -> l.bowling().inns()),
+                sum(bowl, l -> l.bowling().balls()),
+                sum(bowl, l -> l.bowling().maidens()),
+                sum(bowl, l -> l.bowling().runs()),
+                sum(bowl, l -> l.bowling().wickets()));
+        var fielding = field.isEmpty() ? StatLine.Fielding.UNKNOWN : new StatLine.Fielding(
+                sum(field, l -> l.fielding().catches()),
+                sum(field, l -> l.fielding().stumpings()),
+                sum(field, l -> l.fielding().runOuts()),
+                sum(field, l -> l.fielding().dismissals()));
+        // A source's published rate is only the total's rate when that source is the only one
+        // in the category; otherwise rates come from the summed counts or stay unknown.
+        var reported = new StatLine.Reported(
+                bat.size() == 1 ? bat.getFirst().reported().battingAverage() : null,
+                bat.size() == 1 ? bat.getFirst().reported().strikeRate() : null,
+                bowl.size() == 1 ? bowl.getFirst().reported().economy() : null,
+                bowl.size() == 1 ? bowl.getFirst().reported().bowlingAverage() : null);
+        return new StatLine(sum(lines, StatLine::matches), batting, bowling, fielding, reported);
     }
 
     public static Rate battingAverage(StatLine s) {

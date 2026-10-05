@@ -13,8 +13,8 @@
 set -euo pipefail
 
 dir=${1:?usage: $0 <dir> [competition name] [season]}
-name=${2:-SCA Club League}
-season=${3:-}
+name=${2:-SCA Club League 2025 - Division 3}
+season=${3:-2025}
 api=${HAWKS_API:-http://localhost:8080}
 admin=${HAWKS_ADMIN:-dev-admin:dev-admin-password}
 

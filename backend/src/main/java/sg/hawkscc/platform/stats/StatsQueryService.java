@@ -69,9 +69,20 @@ public class StatsQueryService {
         return out;
     }
 
+    /** "bat_balls" → "batting.balls", matching the JSON field names. */
+    private static String apiField(String column) {
+        return switch (column) {
+            case "bat_balls" -> "batting.balls";
+            case "bat_not_outs" -> "batting.notOuts";
+            case "bowl_runs" -> "bowling.runs";
+            case "bowl_balls" -> "bowling.balls";
+            default -> column;
+        };
+    }
+
     private static StatsViews.PlayerStats toView(List<PlayerStatsRow> rows) {
-        // The same player can appear in several competitions of one source; each row is
-        // one (competition, source) line, and all of them combine with the same null rules.
+        // Each row is one (competition, source) line for this player; StatsCalculator.combine adds
+        // them up per category (see its rules), and coverage says which sources each total includes.
         StatLine s = StatsCalculator.combine(rows.stream().map(PlayerStatsRow::line).toList());
         List<String> sources = rows.stream().map(r -> r.source().code()).distinct().toList();
         var b = s.batting();
@@ -89,6 +100,16 @@ public class StatsQueryService {
                         w.maidens(), w.runs(), w.wickets(), StatsCalculator.bowlingAverage(s),
                         StatsCalculator.economy(s), StatsCalculator.bowlingStrikeRate(s)),
                 f.isUnknown() ? null : new StatsViews.Fielding(f.catches(), f.stumpings(), f.runOuts(),
-                        StatsCalculator.fieldingDismissals(s)));
+                        StatsCalculator.fieldingDismissals(s)),
+                rows.stream().flatMap(r -> r.recovered().stream()).map(StatsQueryService::apiField)
+                        .distinct().sorted().toList(),
+                new StatsViews.Coverage(
+                        covered(rows, l -> !l.batting().isUnknown()),
+                        covered(rows, l -> !l.bowling().isUnknown()),
+                        covered(rows, l -> !l.fielding().isUnknown())));
+    }
+
+    private static List<String> covered(List<PlayerStatsRow> rows, java.util.function.Predicate<StatLine> listed) {
+        return rows.stream().filter(r -> listed.test(r.line())).map(r -> r.source().code()).distinct().toList();
     }
 }

@@ -11,7 +11,7 @@ import sg.hawkscc.platform.stats.domain.StatKind;
 class LeaderboardCsvParserTest {
 
     @Test
-    void parsesCricHeroesBattingColumnsAndKeepsRatesAsReported() {
+    void parsesCricHeroesBattingColumnsKeepsRatesAndRecoversExactCounts() {
         var result = LeaderboardCsvParser.parse("""
                 Player,Inn,Runs,Avg,SR
                 Sandeep Chandrasekharan Nair Roja,4,149,49.67,131.86
@@ -24,9 +24,11 @@ class LeaderboardCsvParserTest {
                 .containsEntry(StatColumn.BAT_INNS, 4)
                 .containsEntry(StatColumn.BAT_RUNS, 149)
                 .containsEntry(StatColumn.REPORTED_BAT_SR, new BigDecimal("131.86"))
-                // Not printed → not present → stays unknown.
-                .doesNotContainKey(StatColumn.BAT_BALLS)
-                .doesNotContainKey(StatColumn.BAT_NOT_OUTS);
+                // Not printed, but only 113 balls gives SR 131.86 and only 3 dismissals give 49.67.
+                .containsEntry(StatColumn.BAT_BALLS, 113)
+                .containsEntry(StatColumn.BAT_NOT_OUTS, 1)
+                .doesNotContainKey(StatColumn.BAT_FOURS);
+        assertThat(row.recovered()).containsExactly(StatColumn.BAT_BALLS, StatColumn.BAT_NOT_OUTS);
     }
 
     @Test

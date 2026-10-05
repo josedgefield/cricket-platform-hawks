@@ -15,7 +15,7 @@ import {
 } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { api, type PlayerStats, type SourceCode } from '@/lib/api';
-import { byDescNullsLast, num, rate, relativeTime } from '@/lib/format';
+import { byDescNullsLast, coverageNote, num, rate, recoveredMark, relativeTime, type Rate } from '@/lib/format';
 import { useAsync } from '@/lib/use-async';
 
 type SourceFilter = SourceCode | 'all';
@@ -38,7 +38,7 @@ export default function StatsScreen() {
         options={[
           { value: 'all', label: 'All sources' },
           { value: 'sca', label: 'SCA' },
-          { value: 'cricheroes', label: 'CricHeroes' },
+          { value: 'cricheroes', label: 'CricHeroes (BPL)' },
         ]}
       />
 
@@ -62,8 +62,11 @@ export default function StatsScreen() {
       ) : null}
 
       <Body muted style={styles.footnote}>
-        "—" means the source didn't publish that figure; we never estimate it. "†" marks a rate exactly as the
-        source published it, because we don't have the counts to calculate it ourselves.
+        "All sources" adds each player's counts together (runs, balls, wickets…) and recalculates averages and
+        strike rates from the totals. "—" means a source didn't publish that figure; we never estimate it. "†"
+        marks a rate exactly as the source published it. "‡" marks a count worked out exactly from a published
+        rate (only one whole number fits), or a rate calculated from such a count. A note such as "SCA only" means
+        the other sources don't list the player in that category.
       </Body>
 
       <Standings />
@@ -112,20 +115,24 @@ function PlayerList({ players, category, source }: { players: PlayerStats[]; cat
 
 function PlayerRow({ rank, player, category }: { rank: number; player: PlayerStats; category: Category }) {
   const t = useTheme();
+  const rec = (...fields: string[]) => fields.some((f) => player.recovered?.includes(f));
+  // A calculated rate inherits ‡ from a recovered input; a published one (†) doesn't need it.
+  const derived = (r: Rate | undefined, ...inputs: string[]) => recoveredMark(rate(r), !r?.reported && rec(...inputs));
+  const note = coverageNote(player.sources, player.coverage?.[category], (s) => SOURCE_LABEL[s as SourceCode] ?? s);
   const cells: [string, string][] =
     category === 'batting'
       ? [
           ['Runs', num(player.batting?.runs)],
           ['Inns', num(player.batting?.inns)],
-          ['Avg', rate(player.batting?.average)],
-          ['SR', rate(player.batting?.strikeRate)],
+          ['Avg', derived(player.batting?.average, 'batting.notOuts')],
+          ['SR', derived(player.batting?.strikeRate, 'batting.balls')],
         ]
       : category === 'bowling'
         ? [
             ['Wkts', num(player.bowling?.wickets)],
             ['Inns', num(player.bowling?.inns)],
-            ['Econ', rate(player.bowling?.economy)],
-            ['Avg', rate(player.bowling?.average)],
+            ['Econ', derived(player.bowling?.economy, 'bowling.runs', 'bowling.balls')],
+            ['Avg', derived(player.bowling?.average, 'bowling.runs')],
           ]
         : [
             ['Dis', num(player.fielding?.dismissals)],
@@ -136,7 +143,7 @@ function PlayerRow({ rank, player, category }: { rank: number; player: PlayerSta
   return (
     <Card
       accessible
-      accessibilityLabel={`${rank}. ${player.name}. ${cells.map(([k, v]) => `${k} ${v}`).join(', ')}`}
+      accessibilityLabel={`${rank}. ${player.name}. ${cells.map(([k, v]) => `${k} ${v}`).join(', ')}${note ? `. ${note}` : ''}`}
       style={styles.row}>
       <View style={styles.rowHead}>
         <Text style={[styles.rank, { color: t.textSecondary }]}>{rank}</Text>
@@ -157,6 +164,7 @@ function PlayerRow({ rank, player, category }: { rank: number; player: PlayerSta
           </View>
         ))}
       </View>
+      {note ? <Body muted style={[styles.small, styles.note]}>{note}</Body> : null}
     </Card>
   );
 }
@@ -223,6 +231,7 @@ function Standings() {
 const styles = StyleSheet.create({
   footnote: { fontSize: 13, lineHeight: 18 },
   small: { fontSize: 13 },
+  note: { paddingLeft: 30 },
   sourceStrip: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
   sourceItem: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   list: { gap: Spacing.sm },

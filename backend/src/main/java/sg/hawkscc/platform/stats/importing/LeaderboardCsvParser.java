@@ -69,8 +69,12 @@ public final class LeaderboardCsvParser {
                     StatColumn.FIELD_CATCHES, List.of("catches", "wk catches"),
                     StatColumn.FIELD_RUN_OUTS, List.of("direct ro", "indirect ro")));
 
+    /**
+     * One player's figures. {@code recovered} lists counts the source didn't print but that
+     * exactly one whole number reproduces from its published rates (see {@link CountRecovery}).
+     */
     public record Row(int line, String sourceName, Map<StatColumn, Object> values, List<String> warnings,
-                      boolean duplicate) {
+                      boolean duplicate, List<StatColumn> recovered) {
     }
 
     public record Result(StatKind kind, List<Row> rows, List<String> errors) {
@@ -149,6 +153,7 @@ public final class LeaderboardCsvParser {
             }
             dropRatesOverZero(values);
             crossCheck(kind, values, warnings);
+            List<StatColumn> recovered = CountRecovery.recover(kind, values);
 
             String key = NameKey.of(name);
             Integer first = firstLineByName.putIfAbsent(key, line);
@@ -156,7 +161,7 @@ public final class LeaderboardCsvParser {
             if (duplicate) {
                 warnings.add("Duplicate of line " + first + "; this line is ignored");
             }
-            rows.add(new Row(line, name, values, List.copyOf(warnings), duplicate));
+            rows.add(new Row(line, name, values, List.copyOf(warnings), duplicate, recovered));
         }
         return new Result(kind, List.copyOf(rows), List.copyOf(errors));
     }

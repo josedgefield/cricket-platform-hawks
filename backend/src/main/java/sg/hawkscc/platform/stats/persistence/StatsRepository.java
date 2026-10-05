@@ -1,5 +1,6 @@
 package sg.hawkscc.platform.stats.persistence;
 
+import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -113,6 +114,65 @@ public class StatsRepository {
         return playerId;
     }
 
+    public Optional<UUID> findPlayerByName(UUID clubId, String displayName) {
+        return jdbc.sql("""
+                        select id from players where club_id = :club and lower(display_name) = lower(:name)
+                        order by created_at limit 1""")
+                .param("club", clubId).param("name", displayName)
+                .query(UUID.class).optional();
+    }
+
+    public UUID createPlayer(UUID clubId, String displayName) {
+        return jdbc.sql("insert into players (club_id, display_name) values (:club, :name) returning id")
+                .param("club", clubId).param("name", displayName)
+                .query(UUID.class).single();
+    }
+
+    /** Points a source name at a player, creating the alias or repointing an existing one. */
+    public void upsertAlias(UUID clubId, Source source, String nameKey, String sourceName, UUID playerId) {
+        jdbc.sql("""
+                        insert into player_aliases (club_id, source, name_key, source_name, player_id)
+                        values (:club, :source, :key, :name, :player)
+                        on conflict (club_id, source, name_key)
+                        do update set player_id = excluded.player_id, source_name = excluded.source_name""")
+                .param("club", clubId).param("source", source.code()).param("key", nameKey)
+                .param("name", sourceName).param("player", playerId)
+                .update();
+    }
+
+    /**
+     * Moves one source's stats rows from one player to another, skipping any competition the
+     * target already has a row for. Returns how many rows moved.
+     */
+    public int moveStats(UUID clubId, UUID fromPlayer, UUID toPlayer, Source source) {
+        return jdbc.sql("""
+                        update player_competition_stats s set player_id = :to, updated_at = now()
+                        where s.club_id = :club and s.player_id = :from and s.source = :source
+                          and not exists (select 1 from player_competition_stats t
+                                          where t.club_id = s.club_id and t.player_id = :to
+                                            and t.competition_id = s.competition_id and t.source = s.source)""")
+                .param("club", clubId).param("from", fromPlayer).param("to", toPlayer).param("source", source.code())
+                .update();
+    }
+
+    public long countStats(UUID clubId, UUID playerId, Source source) {
+        return jdbc.sql("""
+                        select count(*) from player_competition_stats
+                        where club_id = :club and player_id = :p and source = :source""")
+                .param("club", clubId).param("p", playerId).param("source", source.code())
+                .query(Long.class).single();
+    }
+
+    /** Deletes a player left with no aliases and no stats (after its names were linked elsewhere). */
+    public int deletePlayerIfOrphan(UUID clubId, UUID playerId) {
+        return jdbc.sql("""
+                        delete from players p where p.club_id = :club and p.id = :p
+                          and not exists (select 1 from player_aliases a where a.player_id = p.id)
+                          and not exists (select 1 from player_competition_stats s where s.player_id = p.id)""")
+                .param("club", clubId).param("p", playerId)
+                .update();
+    }
+
     // ---------- per-player stats ----------
 
     /** Clears the columns a tab owns, so players missing from a new import become unknown. */
@@ -122,6 +182,7 @@ public class StatsRepository {
                 .map(c -> c.dbName() + " = null")
                 .collect(Collectors.joining(", "));
         return jdbc.sql("update player_competition_stats set " + sets + ", " + recordColumn(kind) + " = null,"
+                        + " recovered_columns = " + withoutTab(kind, "recovered_columns") + ","
                         + " updated_at = now()"
                         + " where club_id = :club and competition_id = :comp and source = :source")
                 .param("club", clubId).param("comp", competitionId).param("source", source.code())
@@ -129,7 +190,7 @@ public class StatsRepository {
     }
 
     public void upsertTab(UUID clubId, UUID playerId, UUID competitionId, Source source, StatKind kind,
-                          Map<StatColumn, Object> values, UUID recordId) {
+                          Map<StatColumn, Object> values, List<StatColumn> recovered, UUID recordId) {
         List<StatColumn> columns = values.keySet().stream().sorted().toList();
         String recordCol = recordColumn(kind);
         String insertCols = columns.stream().map(StatColumn::dbName).collect(Collectors.joining(", "));
@@ -141,22 +202,26 @@ public class StatsRepository {
                         : c.dbName() + " = excluded." + c.dbName())
                 .collect(Collectors.joining(", "));
         String sql = "insert into player_competition_stats (club_id, player_id, competition_id, source, "
-                + recordCol + (columns.isEmpty() ? "" : ", " + insertCols) + ")"
-                + " values (:club, :player, :comp, :source, :record" + (columns.isEmpty() ? "" : ", " + insertVals) + ")"
+                + recordCol + ", recovered_columns" + (columns.isEmpty() ? "" : ", " + insertCols) + ")"
+                + " values (:club, :player, :comp, :source, :record, :recovered"
+                + (columns.isEmpty() ? "" : ", " + insertVals) + ")"
                 + " on conflict (club_id, player_id, competition_id, source) do update set "
-                + recordCol + " = excluded." + recordCol + ", updated_at = now()"
+                + recordCol + " = excluded." + recordCol + ", updated_at = now(), recovered_columns = array_cat("
+                + withoutTab(kind, "player_competition_stats.recovered_columns") + ", excluded.recovered_columns)"
                 + (columns.isEmpty() ? "" : ", " + updates);
         var spec = jdbc.sql(sql)
                 .param("club", clubId).param("player", playerId).param("comp", competitionId)
-                .param("source", source.code()).param("record", recordId);
+                .param("source", source.code()).param("record", recordId)
+                .param("recovered", recovered.stream().map(StatColumn::dbName).toArray(String[]::new));
         for (StatColumn c : columns) {
             spec = spec.param(c.name(), values.get(c));
         }
         spec.update();
     }
 
+    /** {@code recovered} = column names (e.g. "bat_balls") filled by exact recovery, not printed. */
     public record PlayerStatsRow(UUID playerId, String displayName, Source source, UUID competitionId,
-                                 StatLine line) {
+                                 StatLine line, List<String> recovered) {
     }
 
     public List<PlayerStatsRow> playerStats(UUID clubId, Source source, UUID competitionId) {
@@ -173,7 +238,7 @@ public class StatsRepository {
                 .param("comp", competitionId)
                 .query((rs, n) -> new PlayerStatsRow(rs.getObject("player_id", UUID.class),
                         rs.getString("display_name"), Source.fromCode(rs.getString("source")),
-                        rs.getObject("competition_id", UUID.class), statLine(rs)))
+                        rs.getObject("competition_id", UUID.class), statLine(rs), recovered(rs)))
                 .list();
     }
 
@@ -189,6 +254,22 @@ public class StatsRepository {
                         integer(rs, "field_run_outs"), integer(rs, "field_dismissals")),
                 new StatLine.Reported(rs.getBigDecimal("reported_bat_avg"), rs.getBigDecimal("reported_bat_sr"),
                         rs.getBigDecimal("reported_econ"), rs.getBigDecimal("reported_bowl_avg")));
+    }
+
+    private static List<String> recovered(ResultSet rs) throws SQLException {
+        Array a = rs.getArray("recovered_columns");
+        return a == null ? List.of() : List.of((String[]) a.getArray());
+    }
+
+    /** SQL expression: {@code arrayExpr} without the tab's column names (fixed names, not input). */
+    private static String withoutTab(StatKind kind, String arrayExpr) {
+        String expr = arrayExpr;
+        for (StatColumn c : StatColumn.values()) {
+            if (c.owner() == kind) {
+                expr = "array_remove(" + expr + ", '" + c.dbName() + "')";
+            }
+        }
+        return expr;
     }
 
     private static Integer integer(ResultSet rs, String column) throws SQLException {

@@ -106,7 +106,8 @@ public class StatsImportService {
                         newPlayers.add(row.sourceName());
                         return repo.createPlayerWithAlias(clubId, source, key, row.sourceName());
                     });
-                    repo.upsertTab(clubId, playerId, competition.id(), source, cmd.kind(), row.values(), recordId);
+                    repo.upsertTab(clubId, playerId, competition.id(), source, cmd.kind(), row.values(),
+                            row.recovered(), recordId);
                     applied++;
                 }
                 repo.insertSyncRun(clubId, source, competition.id(), cmd.kind(), "succeeded", parsed.rows().size(),

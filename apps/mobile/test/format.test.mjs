@@ -1,7 +1,7 @@
 // Run: npm test  (Node 22.18+ runs the TypeScript module directly by stripping types)
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { byDescNullsLast, initials, num, rate, relativeTime } from '../src/lib/format.ts';
+import { byDescNullsLast, coverageNote, initials, num, rate, recoveredMark, relativeTime } from '../src/lib/format.ts';
 
 test('unknown numbers show as a dash, never 0', () => {
   assert.equal(num(null), '—');
@@ -15,6 +15,20 @@ test('rates: two decimals, † when published by the source', () => {
   assert.equal(rate({ value: 40, reported: false }), '40.00');
   assert.equal(rate({ value: null, reported: false }), '—');
   assert.equal(rate(null), '—');
+});
+
+test('recovered figures get ‡, unknown ones stay a dash', () => {
+  assert.equal(recoveredMark('113', true), '113‡');
+  assert.equal(recoveredMark('113', false), '113');
+  assert.equal(recoveredMark('—', true), '—');
+});
+
+test('coverage note only when a total leaves a source out', () => {
+  const label = (s) => (s === 'sca' ? 'SCA' : 'BPL');
+  assert.equal(coverageNote(['sca', 'cricheroes'], ['sca'], label), 'SCA only');
+  assert.equal(coverageNote(['sca', 'cricheroes'], ['sca', 'cricheroes'], label), null);
+  assert.equal(coverageNote(['sca'], ['sca'], label), null);
+  assert.equal(coverageNote(['sca', 'cricheroes'], undefined, label), null);
 });
 
 test('relative time', () => {

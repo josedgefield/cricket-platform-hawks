@@ -12,8 +12,22 @@ public final class StatsViews {
     private StatsViews() {
     }
 
+    /**
+     * One player, from one source or all sources added together. {@code recovered} lists the
+     * counts (e.g. "batting.balls") that include a value a source didn't print but that exactly
+     * one whole number reproduces from its published rate. Clients mark these counts, and the rates
+     * calculated from them, so readers can tell them from printed figures.
+     */
     public record PlayerStats(UUID playerId, String name, List<String> sources, Integer matches, Batting batting,
-                              Bowling bowling, Fielding fielding) {
+                              Bowling bowling, Fielding fielding, List<String> recovered, Coverage coverage) {
+    }
+
+    /**
+     * Which sources each category's totals include. A source in {@code sources} but missing
+     * here didn't list the player in that category (e.g. outside a top-10 leaderboard), so
+     * the total covers the listed sources only.
+     */
+    public record Coverage(List<String> batting, List<String> bowling, List<String> fielding) {
     }
 
     public record Batting(Integer inns, Integer notOuts, Integer runs, Integer balls, Integer highScore,

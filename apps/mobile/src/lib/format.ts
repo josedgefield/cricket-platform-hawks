@@ -16,6 +16,26 @@ export function rate(r: Rate | null | undefined): string {
   return r.value.toFixed(2) + (r.reported ? '†' : '');
 }
 
+/**
+ * Marks a figure with ‡ when it rests on a count we recovered from the source's published rate
+ * (see docs/06). Unknown figures stay a plain dash.
+ */
+export function recoveredMark(text: string, recovered: boolean): string {
+  return recovered && text !== '—' ? text + '‡' : text;
+}
+
+/**
+ * When a category total covers only some of a player's sources, says which (e.g. "SCA only"),
+ * so a reader doesn't take it for the all-sources figure. Null when it covers them all.
+ */
+export function coverageNote(sources: string[], covered: string[] | null | undefined,
+                             label: (source: string) => string): string | null {
+  if (!covered || covered.length === 0 || covered.length >= sources.length) {
+    return null;
+  }
+  return covered.map(label).join(' + ') + ' only';
+}
+
 /** "3 hours ago", "2 days ago"; "Never" for null. */
 export function relativeTime(iso: string | null | undefined, now: Date = new Date()): string {
   if (!iso) {

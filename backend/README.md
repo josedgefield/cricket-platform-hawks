@@ -30,7 +30,7 @@ This uses the `dev` profile. It:
 
 1. starts Postgres and Mailpit from `compose.yaml` (first run downloads the images);
 2. applies the database migrations in `src/main/resources/db/migration`;
-3. loads the real CricHeroes BPL 2025 stats from `src/main/resources/seed/` (through the normal import);
+3. loads the bundled stats from `src/main/resources/seed/` through the normal import: the player links, CricHeroes BPL 2025 and SCA Club League 2025 Division 3 (see `seed/README.md`);
 4. serves the API on http://localhost:8080.
 
 Then open:
@@ -104,7 +104,23 @@ The HTML test report is in `build/reports/tests/test/index.html`.
 docker compose down -v     # deletes the local data volume
 ```
 
-The next `bootRun` recreates the schema and reloads the seed.
+The next `bootRun` recreates the schema and reloads the seed. Do this once after pulling the
+SCA seed and player links (October 2026). Otherwise an SCA competition you imported by hand earlier, and
+BPL rows stored before count recovery, stay as they were, because unchanged files aren't re-imported.
+
+## Linking a player's names across sources
+
+The same person can appear as "Shreyas Puttur" on SCA and "Puttur Shreyas" on CricHeroes. Add the pair to
+`src/main/resources/seed/player-links.csv`, or post it as a stats admin:
+
+```bash
+curl -u dev-admin:dev-admin-password -H 'Content-Type: application/json' \
+  -d '{"player":"Shreyas Puttur","source":"cricheroes","sourceName":"Puttur Shreyas"}' \
+  http://localhost:8080/api/admin/stats/player-links
+```
+
+That name's figures move onto the player, and the "All sources" totals add them up. The answer is 409 if
+both already have figures for the same competition.
 
 ## Rules this code follows (from `CLAUDE.md` and `docs/06`)
 

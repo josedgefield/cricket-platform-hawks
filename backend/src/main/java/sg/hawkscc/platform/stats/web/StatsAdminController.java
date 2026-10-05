@@ -2,6 +2,7 @@ package sg.hawkscc.platform.stats.web;
 
 import java.security.Principal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import sg.hawkscc.platform.stats.ImportResult;
+import sg.hawkscc.platform.stats.PlayerLinkService;
 import sg.hawkscc.platform.stats.StatsImportService;
 import sg.hawkscc.platform.stats.domain.Source;
 import sg.hawkscc.platform.stats.domain.StatKind;
@@ -30,9 +32,31 @@ import sg.hawkscc.platform.stats.domain.StatKind;
 class StatsAdminController {
 
     private final StatsImportService imports;
+    private final PlayerLinkService links;
 
-    StatsAdminController(StatsImportService imports) {
+    StatsAdminController(StatsImportService imports, PlayerLinkService links) {
         this.imports = imports;
+        this.links = links;
+    }
+
+    record NewLink(@NotBlank @Size(max = 120) String player, @NotBlank String source,
+                   @NotBlank @Size(max = 120) String sourceName) {
+    }
+
+    /**
+     * Says that a name as one source prints it is this player (e.g. CricHeroes "Puttur Shreyas"
+     * is "Shreyas Puttur"), so their figures add up. Stats already stored under that name move
+     * across; 409 if both have figures for the same competition.
+     */
+    @PostMapping(path = "/player-links", consumes = MediaType.APPLICATION_JSON_VALUE)
+    PlayerLinkService.LinkResult link(@Valid @RequestBody NewLink body, Principal principal) {
+        return links.link(body.player(), Source.fromCode(body.source()), body.sourceName(), principal.getName());
+    }
+
+    /** The same, for a whole list as CSV with the columns Player, Source and Source name. */
+    @PostMapping(path = "/player-links", consumes = {"text/csv", MediaType.TEXT_PLAIN_VALUE})
+    List<PlayerLinkService.LinkResult> linkAll(@RequestBody String csv, Principal principal) {
+        return links.linkAll(csv, principal.getName());
     }
 
     record NewCompetition(@NotBlank String source, @NotBlank @Size(max = 120) String name,
