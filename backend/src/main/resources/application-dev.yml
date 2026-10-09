@@ -1,6 +1,10 @@
 # Local development: ./gradlew bootRun, or run HawksApplication from your IDE with
 # the "dev" profile. Postgres and Mailpit start from compose.yaml automatically.
 spring:
+  # Emails go to Mailpit from compose.yaml: open http://localhost:8025 to read them.
+  mail:
+    host: localhost
+    port: 1025
   docker:
     compose:
       enabled: true
@@ -22,8 +26,13 @@ hawks:
     # Expo web dev server (npx expo start --web) and the static prototype
     # (design/prototype, served with python -m http.server 8000).
     allowed-origins: http://localhost:8081,http://127.0.0.1:8081,http://localhost:8000,http://127.0.0.1:8000
-  dev:
-    # Local-only login for trying the admin endpoints in Swagger UI.
-    # The identity module (email one-time codes) replaces this.
-    admin-username: dev-admin
-    admin-password: dev-admin-password
+  identity:
+    # Local-only superuser, created on first run so you can sign in straight away
+    # (in the app, or in Swagger UI via POST /api/auth/sign-in, then "Authorize" with the token).
+    dev-superuser:
+      email: dev-admin@hawks.local
+      password: dev-admin-password
+      name: Dev Support
+  app:
+    # Where links in emails point: the Expo web dev server.
+    base-url: http://localhost:8081

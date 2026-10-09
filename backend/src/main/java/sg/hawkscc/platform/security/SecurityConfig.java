@@ -5,42 +5,46 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import sg.hawkscc.platform.identity.AuthService;
+
 /**
- * Default deny. Public: stats reads, health, and API docs (docs are switched off outside dev).
- * Admin endpoints need a role. Until the identity module (email one-time codes + MFA)
- * exists, only the dev/test profiles have a user; in production nobody can sign in,
- * which keeps admin endpoints closed rather than open.
+ * Default deny. Public: stats reads, health, API docs (switched off outside dev), and the
+ * sign-in endpoints. Everything else needs a signed-in member (bearer session token from
+ * /api/auth); /api/admin/** needs an admin or superuser. Finer rules, such as "admins manage
+ * players only", live in the services.
  */
 @Configuration
 class SecurityConfig {
 
     @Bean
-    SecurityFilterChain api(HttpSecurity http) throws Exception {
+    SecurityFilterChain api(HttpSecurity http, AuthService auth) throws Exception {
         http
-                // Stateless JSON API: no session cookie, so no CSRF exposure.
+                // Stateless JSON API with bearer tokens: no session cookie, so no CSRF exposure.
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
+                .addFilterBefore(new BearerTokenFilter(auth), AnonymousAuthenticationFilter.class)
+                .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .authorizeHttpRequests(a -> a
                         .requestMatchers(HttpMethod.GET, "/api/stats/**").permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/admin/stats/**").hasRole("STATS_ADMIN")
-                        .anyRequest().authenticated())
-                .httpBasic(Customizer.withDefaults());
+                        .requestMatchers("/api/auth/sign-out").authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated());
         return http.build();
     }
 
@@ -53,27 +57,11 @@ class SecurityConfig {
             @Value("${hawks.cors.allowed-origins:}") List<String> allowedOrigins) {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(allowedOrigins.stream().filter(o -> !o.isBlank()).toList());
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);
         return source;
-    }
-
-    @Bean
-    @Profile({"dev", "test"})
-    UserDetailsService devUsers(@Value("${hawks.dev.admin-username}") String username,
-                                @Value("${hawks.dev.admin-password}") String password) {
-        return new InMemoryUserDetailsManager(User.withUsername(username)
-                .password("{noop}" + password)
-                .roles("STATS_ADMIN")
-                .build());
-    }
-
-    @Bean
-    @Profile("!dev & !test")
-    UserDetailsService noUsersYet() {
-        return new InMemoryUserDetailsManager();
     }
 }

@@ -1,5 +1,17 @@
 # Server profile. All secrets come from environment variables (see deploy/.env.example).
 spring:
+  # Any SMTP provider (e.g. Brevo). Until these are set, invites fail and admins see why.
+  mail:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
   datasource:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
