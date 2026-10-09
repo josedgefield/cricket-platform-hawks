@@ -18,7 +18,7 @@ repositories {
 }
 
 ext {
-    springModulithVersion = '2.1.0'
+    springModulithVersion = '2.1.1'
     springdocVersion = '3.0.3'
 }
 
