@@ -12,6 +12,8 @@ Status key: ❓ open · ◐ partly answered · ✅ answered
 | A5 | Budget | ✅ Under S$50/month |
 | A6 | Users in first season | ✅ Fewer than 50 |
 | A7 | Brand assets | ✅ Use estimates from the logo (navy + white, Montserrat-like) |
+| A8 | Roles (2026-10-09) | ✅ Three roles: player, admin, superuser (support). Admins handle finance, announcements, stats and players; only superusers change roles or manage admins (`docs/03`) |
+| A9 | Sign-in (2026-10-09) | ✅ Invite-only, email + password (min 8 characters), reset by email link; "delete" means deactivate; 2FA for admins and superusers before finance |
 
 ## Open — blocking a gate
 | # | Question | Blocks | Why it matters |
@@ -26,13 +28,14 @@ Status key: ❓ open · ◐ partly answered · ✅ answered
 | Q21 ❓ | **Does the CricHeroes team leaderboard cover only BPL 2025,** or every Hawks match on CricHeroes (e.g. friendlies or other tournaments)? The site currently labels it "BPL 2025". | Phase 3 | Competition attribution |
 | Q22 ❓ | **Public website consent:** stats pages show players' full CricHeroes names. Confirm this is OK for the public site, or use the planned per-player name opt-in (`docs/10`). | Public launch | PDPA |
 | Q20 ❓ | **Player name mapping:** please share each player's CricHeroes display name (from the members page), so they can be mapped to members | Phase 3 | `player_aliases` seed |
-| Q6 ❓ | **Role holders:** treasurer, captain(s), stats admin, comms admin, club admins (≥ 2 for the two-person rule) | Phase 0 | Seeding roles |
+| Q6 ◐ | **Role holders:** who are the superusers (support, 1–2 people) and the admins? The first superuser's email goes in `HAWKS_BOOTSTRAP_SUPERUSER_EMAIL` on the server | Deployment | Bootstrapping accounts |
+| Q24 ❓ | **Domain and sending email:** buy a domain (e.g. `hawkscc.sg`; `.sg` needs a Singapore address) and set up a sender such as Brevo (free tier) with SPF/DKIM, so invites from e.g. `admin@<domain>` don't land in spam. Also gives the app its web address (Q15) | Production invites | Without it, invite emails can't be sent reliably |
 
 ## Open — non-blocking
 | # | Question | Default if unanswered |
 |---|---|---|
 | Q7 ❓ | Any members **under 18**? | Assume no; add guardian consent if yes |
-| Q8 ❓ | Can captains see squad members' outstanding balances? | No (treasurer + admins only) |
+| Q8 ✅ | Can captains see squad members' outstanding balances? | Superseded: there is no captain role; admins and superusers see balances, players only their own |
 | Q9 ❓ | Refund / waiver / hardship policy? | Treasurer discretion, reason mandatory |
 | Q10 ❓ | How many teams/squads (SCA divisions)? | One squad, many competitions |
 | Q11 ❓ | What stays on WhatsApp? | Banter only; "if it matters, it's in the app" |

@@ -3,11 +3,20 @@
 The player app for iOS, Android and the web, from one codebase (Expo SDK 57, Expo Router).
 It talks to the Spring Boot backend in `../../backend` over its REST API.
 
-| Tab | Status |
+Members sign in first (there's no sign-up: an admin invites them by email).
+
+| Screen | Status |
 |---|---|
+| Sign in, forgot password, accept invite, reset password | **Live** |
 | Home | Club server status, link to stats |
 | Stats | **Live** player stats (batting, bowling, fielding) and the points table, filterable by source |
-| Matches, Money, More | Placeholders saying what's coming; they need member sign-in first |
+| More | **Live**: your details, change password, sign out; *Manage users* for admins and superusers |
+| More → Manage users | **Live**: list/search, invite, edit, deactivate/reactivate, resend invite; superusers change roles |
+| Matches, Money | Placeholders saying what's coming |
+
+Locally, sign in as `dev-admin@hawks.local` / `dev-admin-password` (created by the backend's
+`dev` profile). Invite emails go to Mailpit at http://localhost:8025; their links open this app
+on http://localhost:8081.
 
 ## Prerequisites
 - **Node.js 22 LTS** (https://nodejs.org). Check with `node -v`.
@@ -63,8 +72,10 @@ navigates.
 
 ## Structure
 ```
-src/app/            screens (file-based routes): index, stats, matches, money, more, _layout (tabs)
-src/components/     shared UI: Screen, Card, Segmented, loading/error/empty states
+src/app/            screens (file-based routes): sign-in, accept-invite, forgot/reset-password,
+                    (tabs)/ index, stats, matches, money, more, admin/users (list, [id])
+src/components/     shared UI: Screen, Card, Field, Button, Notice, Segmented, loading/error/empty states
+src/lib/auth.tsx    session: token in Keychain/Keystore (phones) or localStorage (web)
 src/constants/      design tokens from design-system/hawks-cricket-club/MASTER.md
 src/lib/api.ts      typed API client (10 s timeout, readable errors)
 src/lib/format.ts   display rules, unit-tested in test/

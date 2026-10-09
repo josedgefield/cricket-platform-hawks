@@ -1,7 +1,7 @@
 ---
 type: feature-list
 project: Hawks CC platform
-updated: 2026-10-05
+updated: 2026-10-09
 last_report: 2026-10-05
 last_report_head: e8e1d7a
 tags:
@@ -29,8 +29,8 @@ progress reports themselves live in the Obsidian vault, not in this repo.
 | # | Feature | Phase | Requirement | Status | Waiting on |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Deploy backend and web app to the free VM | 0 | NF-3, NF-7 | Not started | A VM and a domain |
-| 2 | Member sign-in: invites, email codes, profiles, no self sign-up | 0 | ID-1, ID-2, ID-3 | Not started | Role holders named (Q6) |
-| 3 | Roles, admin two-factor login, audit log | 0 | NF-1, NF-6 | Not started | — |
+| 2 | Member sign-in: invites, passwords, profiles, no self sign-up | 0 | ID-1, ID-2, ID-3 | Partly done | Built on `claude/sign-in` (API, emails, app screens); production email needs a domain and SMTP sender (Q24) |
+| 3 | Roles, admin two-factor login, audit log | 0 | NF-1, NF-6 | Partly done | Roles (player/admin/superuser) and audit log done; 2FA for admins not started (needed before finance) |
 | 4 | Error tracking, nightly backups, restore drill | 0 | NF-3 | Partly done | Backup script drafted, not running |
 | 5 | Season memberships | 1 | ID-4 | Not started | — |
 | 6 | Fee schedules and charges | 1 | FI-1, FI-2 | Blocked | Fee structure (Q2) |

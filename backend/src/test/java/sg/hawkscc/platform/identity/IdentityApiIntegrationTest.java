@@ -326,7 +326,7 @@ class IdentityApiIntegrationTest {
         String id = (String) invite(superToken, typo, "Typo Player", null).get("id");
         String fixed = unique("Typo");
         Result edited = call(HttpMethod.PATCH, "/api/admin/members/" + id, superToken, Map.of("email", fixed));
-        assertThat(edited.get("email")).isEqualTo(fixed);
+        assertThat(edited.get("email")).isEqualTo(fixed.toLowerCase());
         // The first link no longer works; the new address got a fresh one.
         String oldLink = linkToken(typo);
         assertThat(call(HttpMethod.GET, "/api/auth/invitations/" + oldLink, null, null).status()).isEqualTo(410);

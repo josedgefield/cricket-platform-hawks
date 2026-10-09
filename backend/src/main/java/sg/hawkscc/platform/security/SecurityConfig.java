@@ -40,6 +40,9 @@ class SecurityConfig {
                 .authorizeHttpRequests(a -> a
                         .requestMatchers(HttpMethod.GET, "/api/stats/**").permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
+                        // Spring Boot's error page: a 403 is rendered there in a second dispatch
+                        // that carries no token, so it must be reachable or every 403 turns into 401.
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/sign-out").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()

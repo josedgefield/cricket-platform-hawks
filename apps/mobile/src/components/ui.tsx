@@ -5,6 +5,8 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
+  type TextInputProps,
   type TextProps,
   useColorScheme,
   View,
@@ -155,25 +157,86 @@ export function Button({
   onPress,
   variant = 'navy',
   style,
+  disabled,
+  busy,
 }: {
   label: string;
   onPress: () => void;
-  variant?: 'navy' | 'gold';
+  variant?: 'navy' | 'gold' | 'outline' | 'danger';
   style?: ViewProps['style'];
+  disabled?: boolean;
+  /** Shows a spinner and ignores presses while an action runs. */
+  busy?: boolean;
 }) {
   const t = useTheme();
+  const bg =
+    variant === 'gold' ? t.accent : variant === 'outline' ? 'transparent' : variant === 'danger' ? t.danger : t.primary;
+  const fg = variant === 'gold' ? t.onAccent : variant === 'outline' ? t.text : variant === 'danger' ? '#FFFFFF' : t.onPrimary;
+  const inactive = disabled || busy;
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ disabled: !!inactive, busy: !!busy }}
+      disabled={inactive}
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: variant === 'gold' ? t.accent : t.primary },
-        pressed && styles.pressed,
+        { backgroundColor: bg },
+        variant === 'outline' && { borderWidth: 1, borderColor: t.border },
+        (pressed || inactive) && styles.pressed,
         style,
       ]}>
-      <Text style={[styles.buttonText, { color: variant === 'gold' ? t.onAccent : t.onPrimary }]}>{label}</Text>
+      {busy ? <ActivityIndicator color={fg} /> : <Text style={[styles.buttonText, { color: fg }]}>{label}</Text>}
     </Pressable>
+  );
+}
+
+/** A labelled text input with an optional hint or error underneath. */
+export function Field({
+  label,
+  hint,
+  error,
+  style,
+  ...input
+}: Omit<TextInputProps, 'style'> & { label: string; hint?: string; error?: string | null; style?: ViewProps['style'] }) {
+  const t = useTheme();
+  return (
+    <View style={[styles.field, style]}>
+      <Text style={[styles.fieldLabel, { color: t.text }]}>{label}</Text>
+      <TextInput
+        accessibilityLabel={label}
+        placeholderTextColor={t.textSecondary}
+        style={[
+          styles.input,
+          { color: t.text, backgroundColor: t.card, borderColor: error ? t.danger : t.border },
+        ]}
+        {...input}
+      />
+      {error ? (
+        <Text style={[styles.fieldNote, { color: t.danger }]}>{error}</Text>
+      ) : hint ? (
+        <Text style={[styles.fieldNote, { color: t.textSecondary }]}>{hint}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+/** A coloured message box for results of an action. */
+export function Notice({ tone, children }: { tone: 'success' | 'error' | 'warning' | 'info'; children: ReactNode }) {
+  const t = useTheme();
+  const colors = {
+    success: [t.successBg, t.success],
+    error: [t.dangerBg, t.danger],
+    warning: [t.warningBg, t.warning],
+    info: [t.muted, t.border],
+  }[tone];
+  return (
+    <View
+      accessibilityLiveRegion="polite"
+      accessibilityRole={tone === 'error' ? 'alert' : undefined}
+      style={[styles.notice, { backgroundColor: colors[0], borderColor: colors[1] }]}>
+      <Body>{children}</Body>
+    </View>
   );
 }
 
@@ -196,4 +259,9 @@ const styles = StyleSheet.create({
   button: { minHeight: MinTouch, borderRadius: Radius.md, paddingHorizontal: Spacing.lg, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' },
   buttonText: { fontSize: 15, fontWeight: '700' },
   pressed: { opacity: 0.7 },
+  field: { gap: 6 },
+  fieldLabel: { fontSize: 14, fontWeight: '700' },
+  input: { minHeight: MinTouch, borderWidth: 1, borderRadius: Radius.md, paddingHorizontal: 12, fontSize: 16 },
+  fieldNote: { fontSize: 13 },
+  notice: { borderWidth: 1, borderRadius: Radius.md, padding: Spacing.md },
 });
