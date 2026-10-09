@@ -34,7 +34,7 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       # Unit tests, integration tests (Testcontainers Postgres; Docker is available
       # on GitHub's Ubuntu runners) and the module-boundary check.
