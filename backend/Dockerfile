@@ -1,5 +1,5 @@
 # Multi-stage build: the same image runs locally and on the server.
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /src
 COPY gradlew settings.gradle build.gradle ./
 COPY gradle gradle
@@ -10,7 +10,7 @@ COPY src src
 RUN ./gradlew --no-daemon bootJar -x test \
  && java -Djarmode=tools -jar build/libs/hawks-platform-*.jar extract --layers --launcher --destination /extracted
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 RUN useradd --system --uid 10001 hawks
 WORKDIR /app
 COPY --from=build /extracted/dependencies/ ./
