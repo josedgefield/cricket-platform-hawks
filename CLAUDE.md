@@ -121,7 +121,19 @@ Add a `club_id` / tenant reference to tenant-owned records and keep club configu
 
 The import process must be explicit, previewable, validated, reversible where practical, and idempotent.
 
-## Recommended default stack
+## End of session
+
+When the user writes **End session** (any capitalisation), run the `end-session` skill
+(`.claude/skills/end-session/SKILL.md`). It writes an honest progress report as Obsidian-ready
+Markdown to the user's vault (`HAWKS_OBSIDIAN_DIR`, default
+`C:\Users\shrey\Documents\Obsidian\Hawks Cricket App\Progress Reports`), or hands it over as a
+file in cloud sessions. Reports are never committed to this repo; only `docs/FEATURES.md` is updated.
+
+## Stack decision (2026-10-04)
+
+The club chose a **Spring Boot modular monolith (Java 21, Gradle) on PostgreSQL**, self-hosted in Docker on a near-free VM (Oracle Cloud Always Free). It lives in `backend/`; see `docs/09_TECH_ARCHITECTURE.md` and `backend/README.md`. Business rules and authorisation live in the Java modules, not in database policies. Keep module boundaries (`ModularityTests`), use Flyway for every schema change, and keep everything runnable and debuggable locally with `./gradlew bootRun` and `./gradlew test`. Mobile/web clients (Expo) call the REST API. The list below is the original evaluation, kept for context; where it conflicts with this decision, this decision wins.
+
+## Recommended default stack (original evaluation)
 
 Unless the repository already dictates otherwise, evaluate:
 

@@ -4,7 +4,7 @@
 | Asset | Main threats | Key controls |
 |---|---|---|
 | Finance ledger | Tampering, fraudulent confirmation, insider error | Append-only tables, SQL functions, MFA for treasurer, audit log, two-person monthly review |
-| Member PII (names, emails, mobiles, photos, DOB?) | Leakage via API, over-broad RLS, lost phone | RLS default-deny + tests, minimal fields, secure storage, PDPA processes |
+| Member PII (names, emails, mobiles, photos, DOB?) | Leakage via API, over-broad access rules, lost phone | Default-deny authorisation + tests, minimal fields, secure storage, PDPA processes |
 | Payment proofs (screenshots) | Exposure of bank details | Private bucket, signed URLs (≤ 5 min), EXIF strip, deletion after 12 months |
 | Auth sessions | Phishing, token theft | OTP/magic link (no passwords), short JWT lifetime, refresh rotation, revoke-all sessions |
 | Service-role key / DB creds | Leak in client bundle or repo | Server-only, secret stores, secret scanning + push protection, rotation runbook |
@@ -15,18 +15,18 @@
 ## Controls checklist (baseline: OWASP ASVS Level 1, plus selected L2 items for finance)
 **Authentication & sessions**
 - [ ] Invite-only accounts; email OTP/magic link; Sign in with Apple (required on iOS when other social logins exist) + Google
-- [ ] TOTP MFA enforced (`aal2`) for treasurer & club_admin routes and RLS writes
+- [ ] TOTP MFA enforced (`aal2`) for treasurer & club_admin routes
 - [ ] Rate limits on OTP send/verify, claim submission, imports
 - [ ] Session list + "sign out everywhere"; admin can revoke a member's sessions
 
 **Authorisation**
-- [ ] RLS on all tables, default deny; `security definer` functions with fixed `search_path`
-- [ ] pgTAP test per role × table × operation
+- [ ] Default-deny Spring Security config; every endpoint declares its roles; app DB role cannot change schema
+- [ ] Authorisation test per role × endpoint × operation
 - [ ] Storage policies by `club_id/member_id/` prefix
 - [ ] Two-person approval for granting treasurer/club_admin
 
 **Data protection**
-- [ ] TLS everywhere (managed); encryption at rest (Supabase managed)
+- [ ] TLS everywhere (managed); encryption at rest (OCI block volume encryption) and encrypted backups (age)
 - [ ] No NRIC/FIN collected; DOB only if needed for juniors
 - [ ] Mobile: `expo-secure-store`; no PII in AsyncStorage logs; optional biometric lock on Money
 - [ ] Push payloads contain no PII/amounts
@@ -42,7 +42,7 @@
 - [ ] Dependabot (weekly), CodeQL, dependency review, secret scanning + push protection
 - [ ] GitHub Actions pinned by SHA; least-privilege `permissions:`
 - [ ] Vendored third-party code (e.g. UI UX Pro Max) is pinned by commit, reviewed and recorded in `VENDORED.md`
-- [ ] 2FA required on GitHub, Supabase, Vercel, Expo, Apple and Google accounts
+- [ ] 2FA required on GitHub, Oracle Cloud, Expo, Apple and Google accounts
 
 ## Audit log
 - Written by triggers on finance tables, `role_assignments`, `members`, `consents`, `import_batches` and club settings.

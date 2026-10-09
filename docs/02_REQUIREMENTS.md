@@ -60,7 +60,7 @@ Priority: **M**ust / **S**hould / **C**ould / **W**on't (v1). The phase number r
 ## Non-functional
 | ID | Requirement |
 |---|---|
-| NF-1 | **Security:** RLS default-deny, MFA for finance/admin, OWASP ASVS L1 baseline (see doc 10) |
+| NF-1 | **Security:** default-deny authorisation in the API, MFA for finance/admin, OWASP ASVS L1 baseline (see doc 10) |
 | NF-2 | **Privacy:** PDPA compliant; data stored in Singapore region |
 | NF-3 | **Availability:** best-effort 99.5%; no data loss beyond 24h (RPO) and restore within 1 day (RTO) |
 | NF-4 | **Performance:** player home loads in under 2s on 4G; admin tables in under 1s for 1k rows |

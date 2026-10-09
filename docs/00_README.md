@@ -7,7 +7,7 @@
 |---|---|---|
 | 01 | [Product Vision](01_PRODUCT_VISION.md) | Why we're building this, who it's for, and what success looks like |
 | 02 | [Requirements](02_REQUIREMENTS.md) | Functional and non-functional requirements with MoSCoW priority |
-| 03 | [Roles & Permissions](03_ROLES_PERMISSIONS.md) | Roles, permission matrix, RLS approach |
+| 03 | [Roles & Permissions](03_ROLES_PERMISSIONS.md) | Roles, permission matrix, authorisation approach |
 | 04 | [Domain Model](04_DOMAIN_MODEL.md) | Entities, relationships, key fields |
 | 05 | [Finance & Payments](05_FINANCE_PAYMENTS.md) | Ledger design, PayNow flow, reconciliation, future Stripe |
 | 06 | [Cricket Stats Integrations](06_CRICKET_STATS_INTEGRATIONS.md) | SCA / BPL / IAT30 ingestion via adapters |
@@ -16,7 +16,7 @@
 | 09 | [Tech Architecture](09_TECH_ARCHITECTURE.md) | Stack, repo layout, environments, ops |
 | 10 | [Security, Privacy, Audit](10_SECURITY_PRIVACY_AUDIT.md) | Threat model, controls, PDPA |
 | 11 | [Data Import (Excel)](11_DATA_IMPORT_EXCEL.md) | Staged, previewable, reversible import |
-| 12 | [Testing & QA](12_TESTING_QA.md) | Test pyramid, RLS tests, finance invariants |
+| 12 | [Testing & QA](12_TESTING_QA.md) | Test pyramid, authorisation tests, finance invariants |
 | 13 | [Roadmap & MVP](13_ROADMAP_MVP.md) | Phases, exit criteria |
 | 14 | [Claude Code Build Rules](14_CLAUDE_CODE_BUILD_RULES.md) | How AI-assisted development must work in this repo |
 | 15 | [Open Questions](15_OPEN_QUESTIONS.md) | Decisions needed from the club |

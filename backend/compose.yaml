@@ -1,0 +1,32 @@
+# Local development services. Spring Boot starts these automatically when you
+# run the app from your IDE or with ./gradlew bootRun (spring-boot-docker-compose).
+# You can also run them yourself: docker compose up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hawks
+      POSTGRES_USER: hawks
+      POSTGRES_PASSWORD: hawks-local-only
+    ports:
+      - "5432:5432"
+    volumes:
+      - hawks-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hawks -d hawks"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Catches all outgoing email locally. Web UI: http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    labels:
+      # Not a database; tell Spring Boot not to try to connect to it.
+      org.springframework.boot.ignore: "true"
+
+volumes:
+  hawks-pg:
