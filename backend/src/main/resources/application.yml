@@ -44,3 +44,14 @@ hawks:
     # Load the bundled CricHeroes BPL 2025 data on startup. Idempotent: an
     # unchanged file is recorded as "unchanged" and changes nothing.
     seed: ${HAWKS_STATS_SEED:true}
+  mail:
+    # smtp: send through spring.mail.* ; outbox: keep in memory (tests only)
+    transport: smtp
+    from: ${HAWKS_MAIL_FROM:Hawks CC <no-reply@localhost>}
+  app:
+    base-url: ${HAWKS_APP_BASE_URL:http://localhost:8081}
+  identity:
+    # A new server invites this person as the first superuser (only if none exists yet).
+    bootstrap-superuser:
+      email: ${HAWKS_BOOTSTRAP_SUPERUSER_EMAIL:}
+      name: ${HAWKS_BOOTSTRAP_SUPERUSER_NAME:Club support}

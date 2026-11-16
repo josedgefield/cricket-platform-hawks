@@ -1,6 +1,12 @@
 hawks:
-  dev:
-    admin-username: test-admin
-    admin-password: test-admin-password
+  identity:
+    dev-superuser:
+      email: test-admin@hawks.local
+      password: test-admin-password
+      name: Test Support
+  mail:
+    transport: outbox
+  app:
+    base-url: http://localhost:8081
   cors:
     allowed-origins: http://localhost:8081

@@ -16,7 +16,7 @@
 | Migrations | **Flyway** (`backend/src/main/resources/db/migration`) | Versioned SQL, applied on startup and in CI |
 | Data access | Spring `JdbcClient` with explicit SQL | Readable, easy to debug; no ORM magic around money |
 | API | REST + JSON, documented with OpenAPI (springdoc, Swagger UI in dev) | Mobile and web clients share one API |
-| Auth | **Spring Security**: invite-only email one-time-code login (built in since 6.4), TOTP MFA for treasurer/admin; Sign in with Apple when the iOS app ships | No separate identity server to host |
+| Auth | **Spring Security** with the app's own `identity` module: invite-only, email + password (bcrypt), opaque bearer session tokens stored as hashes and revocable at once; TOTP 2FA for admins and superusers before finance goes live (decided 2026-10-09) | No separate identity server to host; members aren't emailed a code at every login |
 | Mobile + player web | **Expo** (iOS, Android, web) calling the API | One UI codebase |
 | Admin web | Expo web build first; a dedicated admin front end only if dense tables demand it | Fewer codebases to maintain |
 | Email | SMTP to a free-tier provider (e.g. Brevo/Resend); **Mailpit** locally | |
@@ -36,8 +36,9 @@
 |---|---|---|
 | `club` | Club (tenant) context; `club_id` on all data, one club deployed | ✅ |
 | `stats` | Competitions, players + aliases, raw `source_records`, per-source stats, standings, `sync_runs`, CSV/paste imports | ✅ first slice |
-| `security` | HTTP security rules (default deny) | ✅ skeleton |
-| `identity` | Members, invitations, login codes, MFA, roles | next |
+| `security` | HTTP security rules (default deny), bearer token filter | ✅ |
+| `identity` | Members, invites, passwords, sessions, roles (player/admin/superuser), password reset | ✅ first slice (no 2FA yet) |
+| `audit` | Append-only `audit_log` | ✅ |
 | `finance` | Fee schedules, charges, payment claims, payments, allocations, adjustments (append-only ledger) | after identity |
 | `comms` | Announcements, reactions/replies, availability, notification outbox | later |
 | `imports` | Excel member/finance import (stage → preview → commit → rollback) | with finance |

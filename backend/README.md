@@ -7,8 +7,10 @@ and on the server: a container plus Postgres.
 |---|---|---|
 | club | `sg.hawkscc.platform.club` | The club this deployment serves (`club_id` on all data) |
 | stats | `sg.hawkscc.platform.stats` | Competitions, players, raw source records, per-source stats, standings, sync runs |
-| security | `sg.hawkscc.platform.security` | Who can call what (default deny) |
-| identity, finance, comms | *(next)* | Members and sign-in, the fee ledger, notices and availability |
+| identity | `sg.hawkscc.platform.identity` | Members, invites, passwords, sessions, roles (player/admin/superuser) |
+| audit | `sg.hawkscc.platform.audit` | Append-only `audit_log` of sensitive changes |
+| security | `sg.hawkscc.platform.security` | Who can call what (default deny, bearer session tokens) |
+| finance, comms | *(next)* | The fee ledger, notices and availability |
 
 Each module only uses other modules' top-level (public) classes. `ModularityTests`
 fails the build if a module reaches into another's internals.
@@ -44,9 +46,14 @@ Then open:
 | Health | http://localhost:8080/actuator/health |
 | Emails sent by the app | http://localhost:8025 (Mailpit) |
 
-To try an **admin import** in Swagger UI, click **Authorize** and sign in as
-`dev-admin` / `dev-admin-password`. This login only exists in the `dev` profile. Then
-use `POST /api/admin/stats/competitions/{id}/imports/{kind}` with a CSV body, for example:
+**Signing in locally.** The `dev` profile creates a superuser on first run:
+`dev-admin@hawks.local` / `dev-admin-password` (it only exists in `dev`; a server never has it).
+Sign in from the app, or in Swagger UI: run `POST /api/auth/sign-in` with that email and
+password, copy the `token` from the answer, click **Authorize** and paste it. Invite emails
+land in Mailpit at http://localhost:8025, where you can click the link.
+
+To try an **admin import** in Swagger UI once authorised, use
+`POST /api/admin/stats/competitions/{id}/imports/{kind}` with a CSV body, for example:
 
 ```
 Player,Inn,Runs,Avg,SR
@@ -108,13 +115,31 @@ The next `bootRun` recreates the schema and reloads the seed. Do this once after
 SCA seed and player links (October 2026). Otherwise an SCA competition you imported by hand earlier, and
 BPL rows stored before count recovery, stay as they were, because unchanged files aren't re-imported.
 
+## Members and sign-in
+
+Nobody signs themselves up. Roles: **player**, **admin** and **superuser** (support), see `docs/03`.
+
+- **Locally:** sign in as the dev superuser above, open *More → Manage users* in the app and invite
+  someone. The email appears in Mailpit (http://localhost:8025); its link opens the app's
+  *accept invite* screen, where they choose a password.
+- **On a server:** set `HAWKS_BOOTSTRAP_SUPERUSER_EMAIL` (and the SMTP settings) in `deploy/.env`.
+  On first start, if no superuser exists, that person gets an invite. They invite everyone else.
+- **API:** `/api/auth/*` (sign-in, sign-out, invitations, password reset), `/api/me`,
+  `/api/admin/members/*`. Send the token from sign-in as `Authorization: Bearer <token>`.
+- Sessions end after 60 days without use for players, 14 days for admins and superusers, and at
+  once on sign-out, password reset, role change or deactivation.
+- "Deleting" a member deactivates them: they can't sign in, and their history stays.
+
 ## Linking a player's names across sources
 
 The same person can appear as "Shreyas Puttur" on SCA and "Puttur Shreyas" on CricHeroes. Add the pair to
 `src/main/resources/seed/player-links.csv`, or post it as a stats admin:
 
 ```bash
-curl -u dev-admin:dev-admin-password -H 'Content-Type: application/json' \
+token=$(curl -s -H 'Content-Type: application/json' \
+  -d '{"email":"dev-admin@hawks.local","password":"dev-admin-password"}' \
+  http://localhost:8080/api/auth/sign-in | sed -E 's/.*"token":"([^"]+)".*/\1/')
+curl -H "Authorization: Bearer $token" -H 'Content-Type: application/json' \
   -d '{"player":"Shreyas Puttur","source":"cricheroes","sourceName":"Puttur Shreyas"}' \
   http://localhost:8080/api/admin/stats/player-links
 ```

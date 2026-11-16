@@ -19,6 +19,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.RestClient;
 
+import sg.hawkscc.platform.SignIn;
 import sg.hawkscc.platform.TestcontainersConfiguration;
 import sg.hawkscc.platform.stats.domain.Rate;
 
@@ -35,11 +36,13 @@ class StatsApiIntegrationTest {
     @Value("${local.server.port}")
     int port;
 
-    @Value("${hawks.dev.admin-username}")
-    String adminUser;
+    @Value("${hawks.identity.dev-superuser.email}")
+    String adminEmail;
 
-    @Value("${hawks.dev.admin-password}")
+    @Value("${hawks.identity.dev-superuser.password}")
     String adminPassword;
+
+    private static String adminToken;
 
     @Autowired
     JdbcClient jdbc;
@@ -49,6 +52,9 @@ class StatsApiIntegrationTest {
     @BeforeEach
     void setUp() {
         http = RestClient.create("http://localhost:" + port);
+        if (adminToken == null) {
+            adminToken = SignIn.token(http, adminEmail, adminPassword);
+        }
     }
 
     // ---------- helpers ----------
@@ -86,7 +92,7 @@ class StatsApiIntegrationTest {
         String name = "Test " + UUID.randomUUID();
         http.post().uri("/api/admin/stats/competitions")
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(h -> h.setBasicAuth(adminUser, adminPassword))
+                .headers(h -> h.setBearerAuth(adminToken))
                 .body(Map.of("source", source, "name", name))
                 .retrieve().toBodilessEntity();
         return competition(name);
@@ -95,7 +101,7 @@ class StatsApiIntegrationTest {
     private int link(String player, String source, String sourceName) {
         return http.post().uri("/api/admin/stats/player-links")
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(h -> h.setBasicAuth(adminUser, adminPassword))
+                .headers(h -> h.setBearerAuth(adminToken))
                 .body(Map.of("player", player, "source", source, "sourceName", sourceName))
                 .exchange((req, res) -> res.getStatusCode().value());
     }
@@ -105,7 +111,7 @@ class StatsApiIntegrationTest {
                 .contentType(MediaType.valueOf("text/csv"))
                 .headers(h -> {
                     if (authenticated) {
-                        h.setBasicAuth(adminUser, adminPassword);
+                        h.setBearerAuth(adminToken);
                     }
                 })
                 .body(csv)
@@ -264,7 +270,7 @@ class StatsApiIntegrationTest {
         Map<String, Object> problem = http.post()
                 .uri("/api/admin/stats/competitions/" + comp + "/imports/batting")
                 .contentType(MediaType.valueOf("text/csv"))
-                .headers(h -> h.setBasicAuth(adminUser, adminPassword))
+                .headers(h -> h.setBearerAuth(adminToken))
                 .body("Runs,Balls\n1,2\n")
                 .exchange((req, res) -> {
                     assertThat(res.getStatusCode().value()).isEqualTo(422);
