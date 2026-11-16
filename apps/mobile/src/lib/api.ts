@@ -105,6 +105,95 @@ export type Member = {
 export type SignedIn = { token: string; member: Member };
 export type Invitation = { email: string; displayName: string; clubName: string };
 
+// ---- Finance (backend finance module). Amounts are whole cents. ----
+
+export type ChargeStatus = 'open' | 'part_paid' | 'paid' | 'waived' | 'void';
+export type PaymentMethod = 'paynow' | 'bank' | 'cash' | 'other';
+export type AdjustmentKind = 'void' | 'waiver' | 'credit' | 'refund' | 'reversal';
+
+export type ChargeLine = {
+  id: string;
+  reference: string;
+  description: string;
+  amountCents: number;
+  paidCents: number;
+  writtenOffCents: number;
+  outstandingCents: number;
+  dueDate: string | null;
+  status: ChargeStatus;
+  overdue: boolean;
+  createdAt: string;
+};
+
+export type PaymentLine = {
+  id: string;
+  reference: string;
+  amountCents: number;
+  method: PaymentMethod;
+  receivedOn: string;
+  externalRef: string | null;
+  note: string | null;
+  refundedCents: number;
+  unallocatedCents: number;
+  reversed: boolean;
+  createdAt: string;
+};
+
+export type StatementEntry = {
+  at: string;
+  date: string;
+  kind: 'charge' | 'payment' | AdjustmentKind;
+  reference: string | null;
+  description: string;
+  /** Positive increases what the member owes; negative reduces it. */
+  amountCents: number;
+  balanceCents: number;
+};
+
+export type Statement = {
+  memberId: string;
+  displayName: string;
+  /** Owed when positive, in credit when negative. Always calculated from the ledger. */
+  balanceCents: number;
+  owedCents: number;
+  unusedCents: number;
+  overdueCents: number;
+  charges: ChargeLine[];
+  payments: PaymentLine[];
+  entries: StatementEntry[];
+};
+
+export type MemberBalance = {
+  memberId: string;
+  displayName: string;
+  memberStatus: MemberStatus;
+  balanceCents: number;
+  owedCents: number;
+  unusedCents: number;
+  overdueCents: number;
+  openCharges: number;
+};
+
+export type FinanceOverview = {
+  owedCents: number;
+  overdueCents: number;
+  unusedCents: number;
+  collectedCents: number;
+  members: MemberBalance[];
+};
+
+/**
+ * A new random key for one submitted form. Sending the same key again (double tap, retry
+ * after a timeout) makes the server return the first result instead of doing it twice.
+ */
+export function newRequestKey(): string {
+  const c = globalThis.crypto as { randomUUID?: () => string } | undefined;
+  if (c?.randomUUID) {
+    return c.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}-${Math.random().toString(36).slice(2)}`;
+}
+
 /** An error the UI can show as-is: the server's own message when it sent one. */
 export class ApiError extends Error {
   constructor(message: string, readonly status?: number) {
@@ -206,4 +295,35 @@ export const api = {
   reactivate: (id: string) => request<Member>('POST', `/api/admin/members/${enc(id)}/reactivate`),
   resendInvite: (id: string) => request<Member>('POST', `/api/admin/members/${enc(id)}/resend-invite`),
   changeRole: (id: string, role: Role) => request<Member>('PUT', `/api/admin/members/${enc(id)}/role`, { role }),
+
+  myStatement: () => get<Statement>('/api/me/statement'),
+  financeOverview: () => get<FinanceOverview>('/api/admin/finance/overview'),
+  memberStatement: (memberId: string) => get<Statement>(`/api/admin/finance/members/${enc(memberId)}/statement`),
+  raiseCharges: (charges: {
+    memberIds?: string[];
+    everyone?: boolean;
+    description: string;
+    amountCents: number;
+    dueDate?: string;
+    requestKey: string;
+  }) => request<{ batchId: string; count: number }>('POST', '/api/admin/finance/charges', charges),
+  recordPayment: (payment: {
+    memberId: string;
+    amountCents: number;
+    method: PaymentMethod;
+    receivedOn?: string;
+    externalRef?: string;
+    note?: string;
+    chargeId?: string;
+    requestKey: string;
+  }) => request<Statement>('POST', '/api/admin/finance/payments', payment),
+  adjust: (adjustment: {
+    kind: AdjustmentKind;
+    chargeId?: string;
+    paymentId?: string;
+    memberId?: string;
+    amountCents?: number;
+    reason: string;
+    requestKey: string;
+  }) => request<Statement>('POST', '/api/admin/finance/adjustments', adjustment),
 };

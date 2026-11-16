@@ -1,7 +1,19 @@
 // Run: npm test  (Node 22.18+ runs the TypeScript module directly by stripping types)
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { byDescNullsLast, coverageNote, initials, num, rate, recoveredMark, relativeTime } from '../src/lib/format.ts';
+import {
+  byDescNullsLast,
+  coverageNote,
+  initials,
+  isIsoDate,
+  money,
+  num,
+  parseCents,
+  rate,
+  recoveredMark,
+  relativeTime,
+  shortDate,
+} from '../src/lib/format.ts';
 
 test('unknown numbers show as a dash, never 0', () => {
   assert.equal(num(null), '—');
@@ -55,4 +67,35 @@ test('initials', () => {
   assert.equal(initials('Sandeep Chandrasekharan Nair Roja'), 'SR');
   assert.equal(initials('Vishal'), 'V');
   assert.equal(initials('  '), '?');
+});
+
+test('money shows dollars and cents, never rounded', () => {
+  assert.equal(money(123450), 'S$1,234.50');
+  assert.equal(money(5), 'S$0.05');
+  assert.equal(money(0), 'S$0.00');
+  assert.equal(money(-2000), '-S$20.00');
+  assert.equal(money(100000000), 'S$1,000,000.00');
+  assert.equal(money(null), '—');
+});
+
+test('typed amounts become whole cents without floating-point drift', () => {
+  assert.equal(parseCents('25'), 2500);
+  assert.equal(parseCents('25.5'), 2550);
+  assert.equal(parseCents(' S$1,250.00 '), 125000);
+  assert.equal(parseCents('0.29'), 29);
+  assert.equal(parseCents('19.99'), 1999);
+  assert.equal(parseCents('0'), null);
+  assert.equal(parseCents('-5'), null);
+  assert.equal(parseCents('12.345'), null);
+  assert.equal(parseCents('abc'), null);
+  assert.equal(parseCents(''), null);
+});
+
+test('dates', () => {
+  assert.equal(shortDate('2026-11-06'), '6 Nov 2026');
+  assert.equal(shortDate('2026-11-16T23:30:00Z'), '16 Nov 2026');
+  assert.equal(shortDate(null), '—');
+  assert.equal(isIsoDate('2026-02-28'), true);
+  assert.equal(isIsoDate('2026-02-30'), false);
+  assert.equal(isIsoDate('28/02/2026'), false);
 });

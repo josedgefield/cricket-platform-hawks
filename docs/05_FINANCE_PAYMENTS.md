@@ -12,6 +12,31 @@ The ledger is designed so that adding a gateway later changes only the *source* 
 4. **Amounts are integer cents in SGD.** Display uses `S$1,234.50` with tabular numerals.
 5. **Atomic operations happen in SQL functions:** `raise_charges(...)`, `confirm_payment_claim(...)`, `record_payment(...)`, `allocate_payment(...)`, `create_adjustment(...)`. Each writes its audit row in the same transaction.
 
+## 2a. What is built (first slice, 2026-11-16)
+The `finance` module in the backend (`V5__finance.sql`, `/api/admin/finance/*`, `/api/me/statement`) and the app's **Money** tab and **Club finances** admin screens.
+
+- **Tables:** `charge_batches`, `charges`, `payments`, `payment_allocations`, `adjustments`. All are append-only by database trigger, and so is `audit_log`.
+- **Rules live in Java** (`finance/domain/Ledger.java`, `FinanceService`), not SQL functions. This follows the stack decision in `docs/09`. Each change runs in one transaction with its audit row, with the member's row locked.
+- **Raising charges:** an admin charges chosen members, or everyone who isn't deactivated. One action is one `charge_batch`.
+- **Recording payments:** PayNow, bank, cash or other, entered by an admin after the money arrives.
+- **Allocation:** after every change, unused money goes to the charge due first (charges with no due date last, then oldest). An admin can name a charge to pay first.
+- **Taking an allocation back:** rows can't be changed, so cancelling a charge or a payment adds a "release" row for each allocation involved. The freed money is then applied again.
+- **Adjustments,** each with a mandatory reason and the approving admin:
+
+| Kind | Applies to | Effect |
+|---|---|---|
+| `void` | a charge | Cancels the whole charge (raised by mistake). Money already paid towards it moves to other charges |
+| `waiver` | a charge | Forgives part or all of what is still unpaid |
+| `credit` | a member | Counts like a payment with no money received; pays charges oldest first |
+| `refund` | a payment | Records money sent back. Only the unused part of a payment can be refunded |
+| `reversal` | a payment | Cancels the whole payment (recorded by mistake). The charges it paid reopen |
+
+- **Balance** = charges − voids and waivers − payments + refunds and reversals − credits. Positive means the member owes.
+- **Repeated requests:** every write carries a `requestKey`. Sending the same key again returns the first result, so a double tap never records a payment twice.
+- **References:** `HWK-C-00001` for charges, `HWK-P-00001` for payments.
+
+**Not built yet:** fee schedules (Q2), PayNow QR and "I've paid" claims (Q3), bank CSV matching, reminders, reports/CSV export, and 2FA for admins, which is required before real money data goes in.
+
 ## 3. Charge lifecycle
 ```
 open ──(partial allocation)──► part_paid ──(fully allocated)──► paid

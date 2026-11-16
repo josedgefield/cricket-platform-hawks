@@ -1,7 +1,7 @@
 ---
 type: feature-list
 project: Hawks CC platform
-updated: 2026-10-09
+updated: 2026-11-16
 last_report: 2026-10-05
 last_report_head: e8e1d7a
 tags:
@@ -29,12 +29,12 @@ progress reports themselves live in the Obsidian vault, not in this repo.
 | # | Feature | Phase | Requirement | Status | Waiting on |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Deploy backend and web app to the free VM | 0 | NF-3, NF-7 | Not started | A VM and a domain |
-| 2 | Member sign-in: invites, passwords, profiles, no self sign-up | 0 | ID-1, ID-2, ID-3 | Partly done | Built on `claude/sign-in` (API, emails, app screens); production email needs a domain and SMTP sender (Q24) |
+| 2 | Member sign-in: invites, passwords, profiles, no self sign-up | 0 | ID-1, ID-2, ID-3 | Done | Production email still needs a domain and SMTP sender (Q24) |
 | 3 | Roles, admin two-factor login, audit log | 0 | NF-1, NF-6 | Partly done | Roles (player/admin/superuser) and audit log done; 2FA for admins not started (needed before finance) |
 | 4 | Error tracking, nightly backups, restore drill | 0 | NF-3 | Partly done | Backup script drafted, not running |
 | 5 | Season memberships | 1 | ID-4 | Not started | — |
 | 6 | Fee schedules and charges | 1 | FI-1, FI-2 | Blocked | Fee structure (Q2) |
-| 7 | Ledger: statement, balance, allocations, adjustments | 1 | FI-3, FI-8, FI-9 | Not started | — |
+| 7 | Ledger: statement, balance, allocations, adjustments | 1 | FI-3, FI-8, FI-9 | Done | Also manual charges (one, some or all members) and recording payments; Money tab and admin finance screens. Reports/CSV not built |
 | 8 | PayNow QR, "I've paid" claims, treasurer confirmation | 1 | FI-4, FI-5, FI-6 | Blocked | PayNow recipient account (Q3) |
 | 9 | Excel import of members and opening balances | 1 | docs/11 | Blocked | Masked Excel sample (Q1) |
 | 10 | Bank statement matching | 1 | FI-7 | Blocked | Which bank (Q3) |
