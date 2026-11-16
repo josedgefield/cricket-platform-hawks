@@ -8,6 +8,19 @@
 - Comms admins can see a **read count**. Who read what is not shown to other players.
 - **Moderation:** the author or a comms admin can hide a reply with a reason, which is audited.
 
+### What is built (2026-11-16)
+The `comms` module (`V6__announcements.sql`, `/api/notices/*`, `/api/admin/notices/*`), the notices list on **Home**, the notice page, and **New notice** for admins.
+
+- **Audience:** every member. Team and committee audiences wait until teams exist.
+- **Body:** plain text, shown as written (no markdown or attachments yet).
+- **Reactions:** one per member per notice, from like, done, cricket, clap and question, always shown with a label.
+- **Replies:** one flat list. A member can remove their own reply. An admin can hide any reply with a reason, which is audited. Other players don't see hidden replies.
+- **Read count:** admins see how many members opened a notice, never who.
+- **Email copy:** optional, to active members, sent in the background. The notice records how many were sent and how many failed.
+- **Withdraw:** hides a notice from members and keeps it for the record.
+
+**Not built yet:** push notifications, scheduling and expiry, attachments, per-category preferences.
+
 ## Availability & selection
 - Each fixture has availability options **Available / Maybe / Unavailable**, plus a note (e.g. "can only bat").
 - Members are reminded at T-5 days and T-48h if they haven't responded.

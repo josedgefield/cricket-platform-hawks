@@ -41,7 +41,7 @@ progress reports themselves live in the Obsidian vault, not in this repo.
 | 11 | Finance reports and payment reminders | 1 | FI-10, FI-11 | Not started | — |
 | 12 | Fixtures and results | 2 | CR-1 | Not started | SCA results/fixtures pages are public HTML (docs/06); fetching allowed? (Q4) |
 | 13 | Availability and XI selection | 2 | CR-2, CR-3 | Not started | — |
-| 14 | Announcements with replies and reactions | 2 | CO-1, CO-2 | Not started | — |
+| 14 | Announcements with replies and reactions | 2 | CO-1, CO-2 | Done | Audience is all members; optional email copy. No attachments, scheduling or push yet |
 | 15 | Push and email notifications, with preferences | 2 | CO-3 | Not started | — |
 | 16 | Stats import, API and app Stats tab | 3 | CR-4, CR-5, CR-6 | Partly done | BPL 2025 + SCA Div 3 2025 bundled and added up per player; admin import UI not built |
 | 17 | Stats import screen with preview | 3 | CR-5 | Not started | — |
