@@ -209,6 +209,7 @@ export function Field({
         style={[
           styles.input,
           { color: t.text, backgroundColor: t.card, borderColor: error ? t.danger : t.border },
+          input.multiline && styles.inputMultiline,
         ]}
         {...input}
       />
@@ -218,6 +219,23 @@ export function Field({
         <Text style={[styles.fieldNote, { color: t.textSecondary }]}>{hint}</Text>
       ) : null}
     </View>
+  );
+}
+
+/** A yes/no choice shown as a tick box with its label. */
+export function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+  const t = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: value }}
+      onPress={() => onChange(!value)}
+      style={({ pressed }) => [styles.toggle, pressed && styles.pressed]}>
+      <View style={[styles.toggleBox, { borderColor: value ? t.primary : t.border, backgroundColor: value ? t.primary : t.card }]}>
+        {value ? <Text style={[styles.toggleTick, { color: t.onPrimary }]}>✓</Text> : null}
+      </View>
+      <Text style={[styles.toggleLabel, { color: t.text }]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -262,6 +280,11 @@ const styles = StyleSheet.create({
   field: { gap: 6 },
   fieldLabel: { fontSize: 14, fontWeight: '700' },
   input: { minHeight: MinTouch, borderWidth: 1, borderRadius: Radius.md, paddingHorizontal: 12, fontSize: 16 },
+  inputMultiline: { minHeight: 110, paddingVertical: 10, textAlignVertical: 'top' },
   fieldNote: { fontSize: 13 },
   notice: { borderWidth: 1, borderRadius: Radius.md, padding: Spacing.md },
+  toggle: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, minHeight: MinTouch },
+  toggleBox: { width: 24, height: 24, borderWidth: 2, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center' },
+  toggleTick: { fontSize: 15, fontWeight: '800', lineHeight: 18 },
+  toggleLabel: { fontSize: 15, flexShrink: 1 },
 });

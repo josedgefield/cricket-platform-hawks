@@ -68,6 +68,21 @@ const statement = {
     { at: '2026-02-02T00:00:00Z', date: '2026-02-02', kind: 'payment', reference: 'HWK-P-00001', description: 'Payment received (paynow)', amountCents: -2500, balanceCents: 14500 },
   ],
 };
+const notice = {
+  id: '00000000-0000-0000-0000-0000000000a1',
+  title: 'Nets moved to Sunday',
+  body: 'Ground is booked on Saturday, so nets are on Sunday at 9am.',
+  pinned: true,
+  authorName: 'Casey Captain',
+  createdAt: '2026-11-01T00:00:00Z',
+  editedAt: null,
+  reactions: { cricket: 2 },
+  myReaction: null,
+  replyCount: 1,
+  unread: true,
+  readCount: 3,
+  email: null,
+};
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Authorization, Content-Type',
@@ -88,6 +103,13 @@ await page.route(`${api}/**`, (route) => {
   }
   if (path === '/api/auth/sign-out') return route.fulfill({ status: 204, headers: cors });
   if (path === '/api/me') return json(route, 200, admin);
+  if (path === '/api/notices') return json(route, 200, [notice]);
+  if (path === `/api/notices/${notice.id}`) {
+    return json(route, 200, {
+      notice: { ...notice, unread: false },
+      replies: [{ id: 'r1', authorName: 'Nina Newplayer', mine: false, body: 'See you there', createdAt: '2026-11-02T00:00:00Z', hidden: false, hiddenReason: null }],
+    });
+  }
   if (path === '/api/me/statement') return json(route, 200, statement);
   if (path === '/api/admin/finance/overview') {
     return json(route, 200, {
@@ -130,6 +152,16 @@ check(await visible('Email or password is wrong.'), 'a wrong password shows the 
 await page.getByLabel('Password').fill('right password');
 await page.getByRole('button', { name: 'Sign in' }).click();
 check(await visible('Fly high'), 'signing in opens the home tab');
+check(await visible('Nets moved to Sunday'), 'home lists notices');
+check(await visible('Pinned'), 'home marks a pinned notice');
+await page.getByText('Nets moved to Sunday').first().click();
+check(await visible('See you there'), 'a notice shows its replies');
+check(await visible('Howzat 2'), 'a notice shows labelled reactions with counts');
+check(await visible('Opened by 3 members.'), 'admins see the read count');
+await page.goto(base, { waitUntil: 'networkidle' });
+await page.getByText('New notice').first().click();
+check(await visible('Also email it to active members'), 'admins can write a notice');
+await page.goto(base, { waitUntil: 'networkidle' });
 
 await page.getByRole('tab', { name: 'Stats' }).click();
 check(await visible("Couldn't load this"), 'stats shows an error state, not a crash');

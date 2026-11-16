@@ -40,7 +40,7 @@
 | `identity` | Members, invites, passwords, sessions, roles (player/admin/superuser), password reset | ✅ first slice (no 2FA yet) |
 | `audit` | Append-only `audit_log` | ✅ |
 | `finance` | Charges, payments, allocations, adjustments (append-only ledger), statements. Fee schedules and payment claims to come | ✅ first slice |
-| `comms` | Announcements, reactions/replies, availability, notification outbox | later |
+| `comms` | Announcements, reactions and replies, email copy. Availability and push notifications to come | ✅ first slice |
 | `imports` | Excel member/finance import (stage → preview → commit → rollback) | with finance |
 
 **Rules:**

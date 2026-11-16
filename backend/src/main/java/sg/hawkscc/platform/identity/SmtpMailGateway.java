@@ -32,7 +32,11 @@ class SmtpMailGateway implements MailGateway {
             helper.setFrom(from);
             helper.setTo(email.to());
             helper.setSubject(email.subject());
-            helper.setText(email.text(), email.html());
+            if (email.html() == null) {
+                helper.setText(email.text());
+            } else {
+                helper.setText(email.text(), email.html());
+            }
             mail.send(message);
         } catch (MessagingException e) {
             throw new IllegalStateException("Couldn't build the email: " + e.getMessage(), e);

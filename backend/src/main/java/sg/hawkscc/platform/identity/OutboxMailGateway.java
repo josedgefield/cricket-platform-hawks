@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class OutboxMailGateway implements MailGateway {
 
     private static final Logger log = LoggerFactory.getLogger(OutboxMailGateway.class);
-    private static final int KEEP = 50;
+    private static final int KEEP = 500;
 
     private final Deque<Email> sent = new ArrayDeque<>();
 

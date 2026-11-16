@@ -11,7 +11,7 @@ and on the server: a container plus Postgres.
 | audit | `sg.hawkscc.platform.audit` | Append-only `audit_log` of sensitive changes |
 | security | `sg.hawkscc.platform.security` | Who can call what (default deny, bearer session tokens) |
 | finance | `sg.hawkscc.platform.finance` | Append-only ledger: charges, payments, allocations, adjustments; balances are calculated |
-| comms | *(next)* | Notices and availability |
+| comms | `sg.hawkscc.platform.comms` | Club notices with reactions, replies and an optional email copy |
 
 Each module only uses other modules' top-level (public) classes. `ModularityTests`
 fails the build if a module reaches into another's internals.

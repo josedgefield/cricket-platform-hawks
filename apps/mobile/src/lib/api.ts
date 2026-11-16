@@ -182,6 +182,41 @@ export type FinanceOverview = {
   members: MemberBalance[];
 };
 
+// ---- Notices (backend comms module) ----
+
+export type ReactionKey = 'like' | 'done' | 'cricket' | 'clap' | 'question';
+
+export type Notice = {
+  id: string;
+  title: string;
+  body: string;
+  pinned: boolean;
+  authorName: string;
+  createdAt: string;
+  editedAt: string | null;
+  reactions: Partial<Record<ReactionKey, number>>;
+  myReaction: ReactionKey | null;
+  replyCount: number;
+  unread: boolean;
+  /** Admins only. */
+  readCount: number | null;
+  /** Admins only: how the email copy went, if one was asked for. */
+  email: { status: 'sending' | 'sent' | 'failed'; sent: number | null; failed: number | null } | null;
+};
+
+export type NoticeReply = {
+  id: string;
+  authorName: string;
+  mine: boolean;
+  /** Null when hidden. */
+  body: string | null;
+  createdAt: string;
+  hidden: boolean;
+  hiddenReason: string | null;
+};
+
+export type NoticeWithReplies = { notice: Notice; replies: NoticeReply[] };
+
 /**
  * A new random key for one submitted form. Sending the same key again (double tap, retry
  * after a timeout) makes the server return the first result instead of doing it twice.
@@ -295,6 +330,19 @@ export const api = {
   reactivate: (id: string) => request<Member>('POST', `/api/admin/members/${enc(id)}/reactivate`),
   resendInvite: (id: string) => request<Member>('POST', `/api/admin/members/${enc(id)}/resend-invite`),
   changeRole: (id: string, role: Role) => request<Member>('PUT', `/api/admin/members/${enc(id)}/role`, { role }),
+
+  notices: () => get<Notice[]>('/api/notices'),
+  notice: (id: string) => get<NoticeWithReplies>(`/api/notices/${enc(id)}`),
+  react: (id: string, reaction: ReactionKey | null) =>
+    request<NoticeWithReplies>('PUT', `/api/notices/${enc(id)}/reaction`, { reaction }),
+  reply: (id: string, body: string) => request<NoticeWithReplies>('POST', `/api/notices/${enc(id)}/replies`, { body }),
+  hideReply: (id: string, replyId: string, reason?: string) =>
+    request<NoticeWithReplies>('POST', `/api/notices/${enc(id)}/replies/${enc(replyId)}/hide`, { reason }),
+  publishNotice: (notice: { title: string; body: string; pinned: boolean; emailMembers: boolean; requestKey: string }) =>
+    request<Notice>('POST', '/api/admin/notices', notice),
+  editNotice: (id: string, changes: { title?: string; body?: string; pinned?: boolean }) =>
+    request<Notice>('PATCH', `/api/admin/notices/${enc(id)}`, changes),
+  withdrawNotice: (id: string) => request<void>('POST', `/api/admin/notices/${enc(id)}/withdraw`),
 
   myStatement: () => get<Statement>('/api/me/statement'),
   financeOverview: () => get<FinanceOverview>('/api/admin/finance/overview'),
