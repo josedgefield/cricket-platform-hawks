@@ -6,6 +6,9 @@ hawks:
       name: Test Support
   mail:
     transport: outbox
+  comms:
+    # Send notice emails before answering, so tests can check them.
+    email-in-background: false
   app:
     base-url: http://localhost:8081
   cors:
