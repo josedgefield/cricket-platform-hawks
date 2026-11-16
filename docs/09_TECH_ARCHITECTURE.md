@@ -39,7 +39,7 @@
 | `security` | HTTP security rules (default deny), bearer token filter | ✅ |
 | `identity` | Members, invites, passwords, sessions, roles (player/admin/superuser), password reset | ✅ first slice (no 2FA yet) |
 | `audit` | Append-only `audit_log` | ✅ |
-| `finance` | Fee schedules, charges, payment claims, payments, allocations, adjustments (append-only ledger) | after identity |
+| `finance` | Charges, payments, allocations, adjustments (append-only ledger), statements. Fee schedules and payment claims to come | ✅ first slice |
 | `comms` | Announcements, reactions/replies, availability, notification outbox | later |
 | `imports` | Excel member/finance import (stage → preview → commit → rollback) | with finance |
 

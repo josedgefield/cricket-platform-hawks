@@ -27,6 +27,11 @@ export default function MoreScreen() {
             <Text>Manage users →</Text>
           </Link>
         ) : null}
+        {canManageMembers(me.role) ? (
+          <Link href="/admin/finance" style={[styles.link, { color: t.link }]}>
+            <Text>Club finances →</Text>
+          </Link>
+        ) : null}
       </Card>
 
       <ProfileForm />

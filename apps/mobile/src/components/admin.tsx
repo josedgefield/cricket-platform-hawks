@@ -17,7 +17,7 @@ export function AdminOnly({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-export function BackLink({ href, label }: { href: '/more' | '/admin/users'; label: string }) {
+export function BackLink({ href, label }: { href: '/more' | '/admin/users' | '/admin/finance'; label: string }) {
   const t = useTheme();
   return (
     <Link href={href} style={[styles.back, { color: t.link }]}>

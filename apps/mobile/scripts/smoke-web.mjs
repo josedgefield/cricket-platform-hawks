@@ -48,6 +48,26 @@ const invited = {
   inviteEmailError: 'Connection refused',
   manageable: true,
 };
+const statement = {
+  memberId: admin.id,
+  displayName: admin.displayName,
+  balanceCents: 14500,
+  owedCents: 14500,
+  unusedCents: 0,
+  overdueCents: 12000,
+  charges: [
+    { id: 'c1', reference: 'HWK-C-00001', description: 'Season fee', amountCents: 12000, paidCents: 0, writtenOffCents: 0, outstandingCents: 12000, dueDate: '2026-01-31', status: 'open', overdue: true, createdAt: '2026-01-01T00:00:00Z' },
+    { id: 'c2', reference: 'HWK-C-00002', description: 'Match fee', amountCents: 5000, paidCents: 2500, writtenOffCents: 0, outstandingCents: 2500, dueDate: null, status: 'part_paid', overdue: false, createdAt: '2026-02-01T00:00:00Z' },
+  ],
+  payments: [
+    { id: 'p1', reference: 'HWK-P-00001', amountCents: 2500, method: 'paynow', receivedOn: '2026-02-02', externalRef: null, note: null, refundedCents: 0, unallocatedCents: 0, reversed: false, createdAt: '2026-02-02T00:00:00Z' },
+  ],
+  entries: [
+    { at: '2026-01-01T00:00:00Z', date: '2026-01-01', kind: 'charge', reference: 'HWK-C-00001', description: 'Season fee', amountCents: 12000, balanceCents: 12000 },
+    { at: '2026-02-01T00:00:00Z', date: '2026-02-01', kind: 'charge', reference: 'HWK-C-00002', description: 'Match fee', amountCents: 5000, balanceCents: 17000 },
+    { at: '2026-02-02T00:00:00Z', date: '2026-02-02', kind: 'payment', reference: 'HWK-P-00001', description: 'Payment received (paynow)', amountCents: -2500, balanceCents: 14500 },
+  ],
+};
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Authorization, Content-Type',
@@ -68,6 +88,19 @@ await page.route(`${api}/**`, (route) => {
   }
   if (path === '/api/auth/sign-out') return route.fulfill({ status: 204, headers: cors });
   if (path === '/api/me') return json(route, 200, admin);
+  if (path === '/api/me/statement') return json(route, 200, statement);
+  if (path === '/api/admin/finance/overview') {
+    return json(route, 200, {
+      owedCents: 14500,
+      overdueCents: 12000,
+      unusedCents: 0,
+      collectedCents: 30000,
+      members: [
+        { memberId: admin.id, displayName: admin.displayName, memberStatus: 'active', balanceCents: 14500, owedCents: 14500, unusedCents: 0, overdueCents: 12000, openCharges: 2 },
+      ],
+    });
+  }
+  if (path === `/api/admin/finance/members/${admin.id}/statement`) return json(route, 200, statement);
   if (path === '/api/admin/members') return json(route, 200, [admin, invited]);
   if (path === `/api/admin/members/${invited.id}`) return json(route, 200, invited);
   if (path.startsWith('/api/auth/invitations/')) return json(route, 410, { detail: 'This invite link has expired.' });
@@ -103,9 +136,23 @@ check(await visible("Couldn't load this"), 'stats shows an error state, not a cr
 check(await page.getByRole('button', { name: 'Try again' }).first().isVisible(), 'stats offers a retry');
 
 await page.getByRole('tab', { name: 'Money' }).click();
-check(await visible('Not built yet'), 'money tab renders its placeholder');
+check(await visible('S$145.00'), 'money shows the balance');
+check(await visible('S$120.00 is past its due date.'), 'money flags the overdue amount');
+check(await visible('left of S$50.00'), 'money shows a part-paid charge');
+check(await visible('Payment received (paynow)'), 'money lists the statement');
+
+await page.getByRole('tab', { name: 'Matches' }).click();
+check(await visible('Not built yet'), 'matches tab renders its placeholder');
+
+await page.getByRole('tab', { name: 'Money' }).click();
+await page.getByText('Club finances').first().click();
+check(await visible('Owed to the club'), 'admins open club finances');
+await page.getByText('Casey Captain').first().click();
+check(await visible('Record a payment'), 'a member\'s ledger offers recording a payment');
+check(await visible('Cancel charge'), 'a member\'s ledger offers corrections');
 
 // ---------- admin ----------
+await page.goto(base, { waitUntil: 'networkidle' });
 await page.getByRole('tab', { name: 'More' }).click();
 check(await visible('Casey Captain'), 'more shows the signed-in member');
 await page.getByText('Manage users').first().click();

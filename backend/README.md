@@ -10,7 +10,8 @@ and on the server: a container plus Postgres.
 | identity | `sg.hawkscc.platform.identity` | Members, invites, passwords, sessions, roles (player/admin/superuser) |
 | audit | `sg.hawkscc.platform.audit` | Append-only `audit_log` of sensitive changes |
 | security | `sg.hawkscc.platform.security` | Who can call what (default deny, bearer session tokens) |
-| finance, comms | *(next)* | The fee ledger, notices and availability |
+| finance | `sg.hawkscc.platform.finance` | Append-only ledger: charges, payments, allocations, adjustments; balances are calculated |
+| comms | *(next)* | Notices and availability |
 
 Each module only uses other modules' top-level (public) classes. `ModularityTests`
 fails the build if a module reaches into another's internals.

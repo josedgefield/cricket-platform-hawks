@@ -36,6 +36,51 @@ export function coverageNote(sources: string[], covered: string[] | null | undef
   return covered.map(label).join(' + ') + ' only';
 }
 
+/** Whole cents to Singapore dollars: 123450 → "S$1,234.50". Money is never rounded or shown without cents. */
+export function money(cents: number | null | undefined): string {
+  if (cents === null || cents === undefined) {
+    return '—';
+  }
+  const abs = Math.abs(Math.round(cents));
+  const dollars = Math.floor(abs / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${cents < 0 ? '-' : ''}S$${dollars}.${String(abs % 100).padStart(2, '0')}`;
+}
+
+/**
+ * What someone typed as an amount ("25", "25.5", "S$1,250.00") to whole cents, or null if it
+ * isn't a positive amount with at most two decimals. Text maths, so no floating-point drift.
+ */
+export function parseCents(input: string): number | null {
+  const text = input.trim().replace(/^S?\$/i, '').replace(/,/g, '').trim();
+  const match = /^(\d{1,7})(?:\.(\d{1,2}))?$/.exec(text);
+  if (!match) {
+    return null;
+  }
+  const cents = Number(match[1]) * 100 + Number((match[2] ?? '').padEnd(2, '0'));
+  return cents > 0 ? cents : null;
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "2026-11-16" (or a full timestamp) → "16 Nov 2026", without time-zone shifts. */
+export function shortDate(iso: string | null | undefined): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? '');
+  if (!match) {
+    return '—';
+  }
+  return `${Number(match[3])} ${MONTHS[Number(match[2]) - 1] ?? '?'} ${match[1]}`;
+}
+
+/** True for a real calendar date written YYYY-MM-DD. */
+export function isIsoDate(text: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text.trim());
+  if (!match) {
+    return false;
+  }
+  const d = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return d.getUTCMonth() === Number(match[2]) - 1 && d.getUTCDate() === Number(match[3]);
+}
+
 /** "3 hours ago", "2 days ago"; "Never" for null. */
 export function relativeTime(iso: string | null | undefined, now: Date = new Date()): string {
   if (!iso) {
